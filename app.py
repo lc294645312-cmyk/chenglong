@@ -58,7 +58,9 @@ def get_klines(symbol, interval, limit=200):
     """获取K线数据"""
     try:
         url = f'https://api.binance.com/api/v3/klines?symbol={symbol}&interval={interval}&limit={limit}'
-        r = requests.get(url, timeout=10)
+        r = requests.get(url, timeout=15)
+        if r.status_code != 200:
+            raise Exception('blocked')
         data = r.json()
         closes = [float(k[4]) for k in data]
         highs  = [float(k[2]) for k in data]
@@ -68,7 +70,19 @@ def get_klines(symbol, interval, limit=200):
         return {'closes': closes, 'highs': highs, 'lows': lows,
                 'volumes': volumes, 'times': times}
     except:
-        return None
+        try:
+            url = f'https://fapi.binance.com/fapi/v1/klines?symbol={symbol}&interval={interval}&limit={limit}'
+            r = requests.get(url, timeout=15)
+            data = r.json()
+            closes = [float(k[4]) for k in data]
+            highs  = [float(k[2]) for k in data]
+            lows   = [float(k[3]) for k in data]
+            volumes= [float(k[5]) for k in data]
+            times  = [int(k[0]) for k in data]
+            return {'closes': closes, 'highs': highs, 'lows': lows,
+                    'volumes': volumes, 'times': times}
+        except:
+            return None
 
 # ─── 技术指标计算 ────────────────────────────────────────────
 
