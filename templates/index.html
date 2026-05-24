@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BTC/ETH 价格监控</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+    background: #0a0e1a;
+    color: #e0e6f0;
+    min-height: 100vh;
+  }
+  .header {
+    background: linear-gradient(135deg, #1a1f35 0%, #0d1124 100%);
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #1e2d4a;
+  }
+  .header h1 { font-size: 22px; color: #4a9eff; letter-spacing: 1px; }
+  .header .subtitle { font-size: 12px; color: #5a7090; margin-top: 4px; }
+  .prices {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+  }
+  .price-card {
+    flex: 1;
+    background: linear-gradient(135deg, #1a2540 0%, #141d33 100%);
+    border: 1px solid #1e2d4a;
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+  }
+  .price-card .coin { font-size: 13px; color: #5a7090; margin-bottom: 8px; }
+  .price-card .price { font-size: 24px; font-weight: 700; color: #4a9eff; }
+  .price-card .sub { font-size: 11px; color: #3a5070; margin-top: 6px; }
+  .section { padding: 0 16px 16px; }
+  .section-title {
+    font-size: 14px; color: #5a7090; margin-bottom: 12px;
+    padding-top: 4px; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .add-form {
+    background: #141d33; border: 1px solid #1e2d4a;
+    border-radius: 16px; padding: 16px;
+  }
+  .form-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  select, input {
+    background: #0a0e1a; border: 1px solid #2a3a5a;
+    color: #e0e6f0; border-radius: 8px;
+    padding: 10px 12px; font-size: 14px; outline: none; width: 100%;
+  }
+  select { flex: 1; } input { flex: 2; }
+  input::placeholder { color: #3a5070; }
+  .btn-add {
+    width: 100%;
+    background: linear-gradient(135deg, #4a9eff, #2a7adf);
+    border: none; color: white; padding: 12px;
+    border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .alert-list { display: flex; flex-direction: column; gap: 8px; }
+  .alert-item {
+    background: #141d33; border: 1px solid #1e2d4a;
+    border-radius: 12px; padding: 12px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .alert-info .coin-label { font-size: 13px; font-weight: 700; color: #4a9eff; }
+  .alert-info .cond-label { font-size: 12px; color: #7a9ab0; margin-top: 2px; }
+  .alert-status {
+    font-size: 11px; padding: 3px 8px; border-radius: 20px;
+    background: #1e3a1e; color: #4adf7a;
+  }
+  .alert-status.pending { background: #1e2d4a; color: #4a9eff; }
+  .btn-del {
+    background: #2a1a1a; border: 1px solid #4a2a2a;
+    color: #df4a4a; padding: 6px 10px;
+    border-radius: 8px; font-size: 12px; cursor: pointer; margin-left: 8px;
+  }
+  .history-list { display: flex; flex-direction: column; gap: 8px; }
+  .history-item {
+    background: #141d33; border: 1px solid #1e2d4a;
+    border-left: 3px solid #4adf7a; border-radius: 10px; padding: 10px 14px;
+  }
+  .history-item .h-top { display: flex; justify-content: space-between; }
+  .history-item .h-coin { font-size: 13px; font-weight: 600; color: #4adf7a; }
+  .history-item .h-time { font-size: 11px; color: #3a5070; }
+  .history-item .h-detail { font-size: 12px; color: #7a9ab0; margin-top: 4px; }
+  .empty { text-align: center; color: #3a5070; font-size: 13px; padding: 20px; }
+  .last-update { text-align: center; font-size: 11px; color: #3a5070; padding: 8px; }
+  .tabs { display: flex; padding: 0 16px; gap: 8px; margin-bottom: 12px; }
+  .tab {
+    flex: 1; text-align: center; padding: 8px; border-radius: 10px;
+    font-size: 13px; cursor: pointer; border: 1px solid #1e2d4a;
+    color: #5a7090; background: transparent;
+  }
+  .tab.active { background: #1a2540; color: #4a9eff; border-color: #4a9eff; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>₿ 价格监控提醒</h1>
+  <div class="subtitle">BTC / ETH 实时监控 · Telegram 提醒</div>
+</div>
+<div class="prices">
+  <div class="price-card">
+    <div class="coin">BTC/USDT</div>
+    <div class="price" id="btc-price">--</div>
+    <div class="sub">比特币</div>
+  </div>
+  <div class="price-card">
+    <div class="coin">ETH/USDT</div>
+    <div class="price" id="eth-price">--</div>
+    <div class="sub">以太坊</div>
+  </div>
+</div>
+<div class="last-update" id="last-update">加载中...</div>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('alerts')">提醒设置</div>
+  <div class="tab" onclick="switchTab('history')">触发记录</div>
+</div>
+<div id="tab-alerts" class="tab-content active">
+  <div class="section">
+    <div class="section-title">添加提醒</div>
+    <div class="add-form">
+      <div class="form-row">
+        <select id="sel-coin"><option value="BTC">BTC</option><option value="ETH">ETH</option></select>
+        <select id="sel-cond"><option value="above">高于 ↑</option><option value="below">低于 ↓</option></select>
+        <input id="inp-price" type="number" placeholder="目标价格" />
+      </div>
+      <button class="btn-add" onclick="addAlert()">+ 添加提醒</button>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">当前提醒</div>
+    <div class="alert-list" id="alert-list"><div class="empty">暂无提醒</div></div>
+  </div>
+</div>
+<div id="tab-history" class="tab-content">
+  <div class="section">
+    <div class="section-title">触发记录</div>
+    <div class="history-list" id="history-list"><div class="empty">暂无记录</div></div>
+  </div>
+</div>
+<script>
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['alerts','history'][i]===name));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='history') loadHistory();
+}
+function fmt(n) {
+  return n>1000?n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}):n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+async function loadPrices() {
+  try {
+    const r=await fetch('/api/prices'); const d=await r.json();
+    if(d.BTC) document.getElementById('btc-price').textContent='$'+fmt(d.BTC);
+    if(d.ETH) document.getElementById('eth-price').textContent='$'+fmt(d.ETH);
+    if(d.last_update) document.getElementById('last-update').textContent='最后更新：'+d.last_update;
+  } catch(e){}
+}
+async function loadAlerts() {
+  try {
+    const r=await fetch('/api/alerts'); const alerts=await r.json();
+    const el=document.getElementById('alert-list');
+    if(!alerts.length){el.innerHTML='<div class="empty">暂无提醒</div>';return;}
+    el.innerHTML=alerts.map(a=>`
+      <div class="alert-item">
+        <div class="alert-info">
+          <div class="coin-label">${a.coin}/USDT</div>
+          <div class="cond-label">${a.condition==='above'?'📈 高于':'📉 低于'} $${fmt(a.price)}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="alert-status ${a.triggered?'':'pending'}">${a.triggered?'✅ 已触发':'⏳ 等待中'}</span>
+          <button class="btn-del" onclick="delAlert(${a.id})">删除</button>
+        </div>
+      </div>`).join('');
+  } catch(e){}
+}
+async function addAlert() {
+  const coin=document.getElementById('sel-coin').value;
+  const condition=document.getElementById('sel-cond').value;
+  const price=document.getElementById('inp-price').value;
+  if(!price){alert('请输入目标价格');return;}
+  await fetch('/api/alerts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({coin,condition,price})});
+  document.getElementById('inp-price').value='';
+  loadAlerts();
+}
+async function delAlert(id) {
+  await fetch('/api/alerts/'+id,{method:'DELETE'}); loadAlerts();
+}
+async function loadHistory() {
+  try {
+    const r=await fetch('/api/history'); const hist=await r.json();
+    const el=document.getElementById('history-list');
+    if(!hist.length){el.innerHTML='<div class="empty">暂无触发记录</div>';return;}
+    el.innerHTML=hist.map(h=>`
+      <div class="history-item">
+        <div class="h-top">
+          <span class="h-coin">${h.coin}/USDT ${h.condition==='above'?'📈':'📉'}</span>
+          <span class="h-time">${h.time}</span>
+        </div>
+        <div class="h-detail">${h.condition==='above'?'高于':'低于'} $${fmt(h.target)} · 触发价 $${fmt(h.price)}</div>
+      </div>`).join('');
+  } catch(e){}
+}
+loadPrices(); loadAlerts();
+setInterval(loadPrices,30000); setInterval(loadAlerts,15000);
+</script>
+</body>
+</html>
