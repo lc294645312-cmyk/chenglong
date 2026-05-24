@@ -55,34 +55,31 @@ def get_ticker(symbol):
 
 
 def get_klines(symbol, interval, limit=200):
-    """获取K线数据"""
-    try:
-        url = f'https://api.binance.com/api/v3/klines?symbol={symbol}&interval={interval}&limit={limit}'
-        r = requests.get(url, timeout=15)
-        if r.status_code != 200:
-            raise Exception('blocked')
-        data = r.json()
-        closes = [float(k[4]) for k in data]
-        highs  = [float(k[2]) for k in data]
-        lows   = [float(k[3]) for k in data]
-        volumes= [float(k[5]) for k in data]
-        times  = [int(k[0]) for k in data]
-        return {'closes': closes, 'highs': highs, 'lows': lows,
-                'volumes': volumes, 'times': times}
-    except:
+    """获取K线数据，多源备用"""
+    # 先试 Binance US
+    urls = [
+        f'https://api.binance.us/api/v3/klines?symbol={symbol}&interval={interval}&limit={limit}',
+        f'https://api1.binance.com/api/v3/klines?symbol={symbol}&interval={interval}&limit={limit}',
+        f'https://api2.binance.com/api/v3/klines?symbol={symbol}&interval={interval}&limit={limit}',
+        f'https://api3.binance.com/api/v3/klines?symbol={symbol}&interval={interval}&limit={limit}',
+    ]
+    for url in urls:
         try:
-            url = f'https://fapi.binance.com/fapi/v1/klines?symbol={symbol}&interval={interval}&limit={limit}'
-            r = requests.get(url, timeout=15)
-            data = r.json()
-            closes = [float(k[4]) for k in data]
-            highs  = [float(k[2]) for k in data]
-            lows   = [float(k[3]) for k in data]
-            volumes= [float(k[5]) for k in data]
-            times  = [int(k[0]) for k in data]
-            return {'closes': closes, 'highs': highs, 'lows': lows,
-                    'volumes': volumes, 'times': times}
+            r = requests.get(url, timeout=10)
+            if r.status_code == 200:
+                data = r.json()
+                if isinstance(data, list) and len(data) > 0:
+                    return {
+                        'closes':  [float(k[4]) for k in data],
+                        'highs':   [float(k[2]) for k in data],
+                        'lows':    [float(k[3]) for k in data],
+                        'volumes': [float(k[5]) for k in data],
+                        'times':   [int(k[0]) for k in data],
+                    }
         except:
-            return None
+            continue
+    return None
+
 
 # ─── 技术指标计算 ────────────────────────────────────────────
 
