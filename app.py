@@ -36,20 +36,23 @@ def save_json(filename, data):
 
 def get_ticker(symbol):
     """获取实时行情 ticker"""
+    coin_id = 'bitcoin' if symbol == 'BTCUSDT' else 'ethereum'
     try:
-        url = f'https://api.binance.com/api/v3/ticker/24hr?symbol={symbol}'
-        r = requests.get(url, timeout=10)
+        url = f'https://api.coingecko.com/api/v3/coins/{coin_id}?localization=false&tickers=false&community_data=false&developer_data=false'
+        r = requests.get(url, timeout=15)
         d = r.json()
+        md = d['market_data']
         return {
-            'price': float(d['lastPrice']),
-            'change': float(d['priceChangePercent']),
-            'high': float(d['highPrice']),
-            'low': float(d['lowPrice']),
-            'volume': float(d['volume']),
-            'quoteVolume': float(d['quoteVolume']),
+            'price': md['current_price']['usd'],
+            'change': md['price_change_percentage_24h'],
+            'high': md['high_24h']['usd'],
+            'low': md['low_24h']['usd'],
+            'volume': md['total_volume']['usd'] / md['current_price']['usd'],
+            'quoteVolume': md['total_volume']['usd'],
         }
     except:
         return None
+
 
 def get_klines(symbol, interval, limit=200):
     """获取K线数据"""
