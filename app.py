@@ -37,39 +37,37 @@ def save_json(f, d):
     with open(f, 'w') as fp: json.dump(d, fp, ensure_ascii=False, indent=2)
 
 def get_ticker(coin):
-    cfg = COIN_CONFIG[coin]
-    cg_id = cfg['cg_id']
+    symbol = COIN_CONFIG[coin]['symbol']
+    cg_id  = COIN_CONFIG[coin]['cg_id']
+    urls = [
+        f'https://api.binance.us/api/v3/ticker/24hr?symbol={symbol}',
+        f'https://api1.binance.com/api/v3/ticker/24hr?symbol={symbol}',
+        f'https://api2.binance.com/api/v3/ticker/24hr?symbol={symbol}',
+        f'https://api3.binance.com/api/v3/ticker/24hr?symbol={symbol}',
+    ]
+    for url in urls:
+        try:
+            r = requests.get(url, timeout=10, headers=HEADERS)
+            if r.status_code == 200:
+                d = r.json()
+                if 'lastPrice' in d:
+                    price = float(d['lastPrice'])
+                    return {
+                        'price':       price,
+                        'change':      float(d['priceChangePercent']),
+                        'high':        float(d['highPrice']),
+                        'low':         float(d['lowPrice']),
+                        'volume':      float(d['volume']),
+                        'quoteVolume': float(d['quoteVolume']),
+                    }
+        except: continue
     try:
         url = 'https://api.coingecko.com/api/v3/simple/price'
-        params = {'ids': cg_id, 'vs_currencies': 'usd',
-                  'include_24hr_change': 'true', 'include_24hr_vol': 'true'}
-        r = requests.get(url, params=params, timeout=15, headers=HEADERS)
+        r = requests.get(url, params={'ids':cg_id,'vs_currencies':'usd','include_24hr_change':'true','include_24hr_vol':'true'}, timeout=15, headers=HEADERS)
         if r.status_code == 200:
             d = r.json()[cg_id]
-            price = d['usd']
-            return {
-                'price': price,
-                'change': d.get('usd_24h_change', 0) or 0,
-                'high': price * 1.01,
-                'low': price * 0.99,
-                'volume': d.get('usd_24h_vol', 0) / max(price, 0.0001),
-                'quoteVolume': d.get('usd_24h_vol', 0),
-            }
-    except: pass
-    try:
-        time.sleep(1)
-        url = f'https://api.coingecko.com/api/v3/coins/{cg_id}?localization=false&tickers=false&community_data=false&developer_data=false'
-        r = requests.get(url, timeout=20, headers=HEADERS)
-        if r.status_code == 200:
-            d = r.json()['market_data']
-            return {
-                'price': d['current_price']['usd'],
-                'change': d['price_change_percentage_24h'] or 0,
-                'high': d['high_24h']['usd'],
-                'low': d['low_24h']['usd'],
-                'volume': d['total_volume']['usd'] / max(d['current_price']['usd'], 0.0001),
-                'quoteVolume': d['total_volume']['usd'],
-            }
+            p = d['usd']
+            return {'price':p,'change':d.get('usd_24h_change',0) or 0,'high':p*1.01,'low':p*0.99,'volume':d.get('usd_24h_vol',0)/max(p,0.0001),'quoteVolume':d.get('usd_24h_vol',0)}
     except: pass
     return None
 
@@ -887,21 +885,13 @@ def calc_position_sizing(grade, tf_signal, vr, rr1, confidence, risk_level_val, 
 
     conf_level = confidence.get('level', '中')
     if rr1 >= 2.5 and conf_level in ['高','中高'] and '强' in mtf_status:
-        base_pos = 50
-        level_text = '标准仓位'
-        reasons.append('强趋势共振+高盈亏比')
+        base_pos = 50; level_text = '标准仓位'; reasons.append('强趋势共振+高盈亏比')
     elif rr1 >= 2.0 and conf_level in ['高','中高']:
-        base_pos = 30
-        level_text = '中等仓位'
-        reasons.append('盈亏比优秀+置信度高')
+        base_pos = 30; level_text = '中等仓位'; reasons.append('盈亏比优秀+置信度高')
     elif rr1 >= 1.5 and conf_level in ['中','中高']:
-        base_pos = 20
-        level_text = '小仓位试单'
-        reasons.append('盈亏比合理')
+        base_pos = 20; level_text = '小仓位试单'; reasons.append('盈亏比合理')
     else:
-        base_pos = 10
-        level_text = '轻仓试探'
-        reasons.append('置信度偏低，轻仓')
+        base_pos = 10; level_text = '轻仓试探'; reasons.append('置信度偏低，轻仓')
 
     final_pos = min(base_pos, pos_cap)
 
@@ -925,7 +915,9 @@ def full_analysis(coin):
     cfg = COIN_CONFIG[coin]
     symbol = cfg['symbol']
     ticker = get_ticker(coin)
-    if not ticker: return None
+    if not ticker:
+        print(f'[ERROR] ticker_fetch_failed: {coin}')
+        return {'_error': 'ticker_fetch_failed', '_detail': f'无法获取{coin}价格，Binance和CoinGecko均失败'}
     price = ticker['price']
     result = {'coin': coin, 'name': cfg['name'], 'price': price,
               'change_24h': ticker['change'], 'high_24h': ticker['high'],
@@ -935,6 +927,9 @@ def full_analysis(coin):
         klines[iv] = get_klines(symbol, iv, lim)
         time.sleep(0.2)
     k15=klines.get('15m'); k1h=klines.get('1h'); k4h=klines.get('4h'); k1d=klines.get('1d')
+    if not k1h:
+        print(f'[ERROR] klines_fetch_failed: {coin} 1h')
+        return {'_error': 'klines_fetch_failed', '_detail': f'{coin} 1小时K线获取失败，Binance全部节点不可用'}
     if k1h:
         c = k1h['closes']
         result['ma5_1h']=ma(c,5); result['ma10_1h']=ma(c,10)
@@ -1158,7 +1153,13 @@ def build_structured_report(data):
              '（+' + str(rr.get('tp2_pct', tp_sl.get('tp2_pct',0))) + '%）' + tp2_tag)
     L.append('第一目标盈亏比：' + str(rr.get('rr_1', tp_sl.get('risk_reward',0))) +
              '   第二目标盈亏比：' + str(rr.get('rr_2','--')))
-    L.append(rr.get('note', '--'))
+    rr_note_raw = rr.get('note', '--')
+    pos_zero = ps.get('suggested_position', '0%') == '0%'
+    suppress = (grade in ['D','E'] or pos_zero or rl.get('level','') in ['高','中高'])
+    if suppress and '优质机会' in rr_note_raw:
+        L.append('盈亏比理论上较高，但当前量能不足、风险过高，不构成可执行交易机会。')
+    else:
+        L.append(rr_note_raw)
 
     L.append('')
     L.append('【仓位建议】')
@@ -1235,25 +1236,21 @@ def build_telegram_message(data):
     lines.append('信号：' + str(scores.get('signal','--')) + '/100  ' + str(scores.get('signal_text','--')))
     lines.append('置信度：' + conf.get('level','--') +
                  '   操作等级：<b>' + grade + '</b> ' + ag.get('action','').split('，')[0])
-
     lines.append('')
     res_str = ' / '.join(['$' + _fmt_price(r['price']) for r in sr[:2]]) or '暂无'
     sup_str = ' / '.join(['$' + _fmt_price(s['price']) for s in ss[:2]]) or '暂无'
     lines.append('压力：' + res_str)
     lines.append('支撑：' + sup_str)
-
     lines.append('')
     lines.append('止损：$' + _fmt_price(rr.get('stop_loss', tp_sl.get('stop_loss',0))) +
                  '  止盈1：$' + _fmt_price(rr.get('take_profit_1', tp_sl.get('take_profit_1',0))))
     lines.append('盈亏比：TP1 ' + str(rr.get('rr_1','--')) +
                  '，TP2 ' + str(rr.get('rr_2','--')))
     lines.append('仓位建议：' + ps.get('suggested_position','0%') + ' — ' + ps.get('level','--'))
-
     risk_factors = rl.get('risk_factors',[])[:3]
     if risk_factors:
         lines.append('')
         lines.append('风险：' + '、'.join([f[:10] for f in risk_factors]))
-
     lines.append('')
     grade_conclusion_short = {
         'A+': '高质量机会，可按计划开仓，严守止损。',
@@ -1264,7 +1261,6 @@ def build_telegram_message(data):
         'E':  '禁止交易，止盈止损异常。',
     }
     lines.append('建议：' + grade_conclusion_short.get(grade, '参考以上分析决策。'))
-
     return '\n'.join(lines)
 
 
@@ -1370,14 +1366,35 @@ def api_coins(): return jsonify(list(COIN_CONFIG.keys()))
 @app.route('/api/report/<coin>')
 def api_report(coin):
     coin = coin.upper()
-    if coin not in COIN_CONFIG: return jsonify({'error': 'invalid coin'})
-    data = full_analysis(coin)
-    if not data: return jsonify({'error': 'fetch failed'})
-    data['report'] = generate_report(data)
+    if coin not in COIN_CONFIG:
+        return jsonify({'error': 'invalid_coin', 'detail': f'不支持的币种: {coin}'})
+    try:
+        data = full_analysis(coin)
+    except Exception as e:
+        print(f'[ERROR] full_analysis exception: {coin} {e}')
+        return jsonify({'error': 'analysis_exception', 'detail': str(e)})
+    if not data:
+        return jsonify({'error': 'fetch_failed', 'detail': '数据获取失败，请稍后重试'})
+    if '_error' in data:
+        print(f'[ERROR] {data["_error"]}: {data.get("_detail","")}')
+        return jsonify({'error': data['_error'], 'detail': data['_detail']})
+    required = ['scores', 'tp_sl', 'timeframe_trends', 'final_action_grade']
+    missing = [k for k in required if k not in data]
+    if missing:
+        print(f'[ERROR] analysis_field_missing: {missing}')
+        return jsonify({'error': 'analysis_field_missing', 'detail': f'缺少字段: {missing}'})
+    try:
+        data['report'] = generate_report(data)
+    except Exception as e:
+        print(f'[ERROR] report_build_failed: {e}')
+        data['report'] = f'报告生成失败：{e}'
     should_send, tg_reason = should_send_telegram(data)
     if should_send:
-        tg_msg = build_telegram_message(data)
-        send_telegram(tg_msg)
+        try:
+            tg_msg = build_telegram_message(data)
+            send_telegram(tg_msg)
+        except Exception as e:
+            print(f'[WARN] telegram_failed: {e}')
     return jsonify(data)
 
 @app.route('/api/alerts', methods=['GET'])
