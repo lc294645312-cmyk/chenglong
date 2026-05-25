@@ -368,23 +368,17 @@ def generate_report(data):
             pr = data.get('predicted_range', {})
             tp_sl = data.get('tp_sl', {})
             tf_trends = data.get('timeframe_trends', [])
-            prompt = f"""你是专业加密货币短线交易分析师。根据数据生成简洁报告，中文输出。
-
-币种：{data['coin']}/USDT（{data.get('name','')}）
-价格：${data['price']:,.4f}  24H涨跌：{data.get('change_24h',0):.2f}%
-成交量：{data.get('quote_volume_24h',0):.1f}M USDT
-
-评分：趋势{scores.get('trend','-')} 动能{scores.get('momentum','-')} 量能{scores.get('volume','-')} 风险{scores.get('risk','-')} 信号{scores.get('signal','-')}→{scores.get('signal_text','')}
-多周期：{' | '.join([f"{t['label']}:{t['trend']}" for t in tf_trends])}
-成交量：{data.get('volume_signal','')} {data.get('volume_signal_detail','')}
-压力位：{[f"${r['price']:,.4f}({r['label']})" for r in sr[:3]]}
-支撑位：{[f"${s['price']:,.4f}({s['label']})" for s in ss[:3]]}
-预测区间：${pr.get('low',0):,.4f}~${pr.get('high',0):,.4f}
-止损：${tp_sl.get('stop_loss',0):,.4f} 止盈1：${tp_sl.get('take_profit_1',0):,.4f} 止盈2：${tp_sl.get('take_profit_2',0):,.4f}
-RSI(1H)={data.get('rsi_1h','-')} RSI(4H)={data.get('rsi_4h','-')} MACD={data.get('macd_1h','-')}
-
-输出格式（每项1-2句）：
-【综合判断】【趋势分析】【关键价位】【操作建议】【风险提示】"""
+            tf_str = ' | '.join([t['label']+':'+t['trend'] for t in tf_trends])
+            prompt = '你是专业加密货币短线交易分析师。根据数据生成简洁报告，中文输出。\n'
+            prompt += '币种：' + data['coin'] + '/USDT\n'
+            prompt += '价格：$' + str(round(data['price'],4)) + '  24H涨跌：' + str(round(data.get('change_24h',0),2)) + '%\n'
+            prompt += '信号：' + str(scores.get('signal','-')) + '/100 ' + str(scores.get('signal_text','')) + '\n'
+            prompt += '多周期：' + tf_str + '\n'
+            prompt += '成交量：' + str(data.get('volume_signal','')) + '\n'
+            prompt += '压力位：' + str([round(r['price'],2) for r in sr[:3]]) + '\n'
+            prompt += '支撑位：' + str([round(s['price'],2) for s in ss[:3]]) + '\n'
+            prompt += 'RSI(1H)=' + str(data.get('rsi_1h','-')) + ' MACD=' + str(data.get('macd_1h','-')) + '\n'
+            prompt += '请输出：【综合判断】【趋势分析】【关键价位】【操作建议】【风险提示】'
             resp = requests.post(
                 'https://api.anthropic.com/v1/messages',
                 headers={'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json'},
@@ -392,22 +386,27 @@ RSI(1H)={data.get('rsi_1h','-')} RSI(4H)={data.get('rsi_4h','-')} MACD={data.get
                 timeout=30
             )
             return resp.json()['content'][0]['text']
-        except: pass
+        except:
+            pass
     scores = data.get('scores', {})
     tp_sl = data.get('tp_sl', {})
     pr = data.get('predicted_range', {})
     lines = []
-    lines.append(f"【综合判断】{scores.get('signal_text','--')}（信号分{scores.get('signal','--')}/100）{scores.get('signal_reason','')}")
+    lines.append('【综合判断】' + str(scores.get('signal_text','--')) + '（信号分' + str(scores.get('signal','--')) + '/100）')
     tf = data.get('timeframe_trends', [])
-   if tf: lines.append('【多周期趋势】' + ' | '.join([t['label']+t['trend'] for t in tf]))
-
-    lines.append(f"【成交量】{data.get('volume_signal','')} {data.get('volume_signal_detail','')}")
-    sr = data.get('resistance', []); ss = data.get('support', [])
-    lines.append(f"【关键价位】压力：{'、'.join([f\"${r['price']:,.4f}\" for r in sr[:2]]) if sr else '暂无'} | 支撑：{'、'.join([f\"${s['price']:,.4f}\" for s in ss[:2]]) if ss else '暂无'}")
-    lines.append(f"【预测区间】${pr.get('low',0):,.4f} ~ ${pr.get('high',0):,.4f}")
-    lines.append(f"【止盈止损】止损${tp_sl.get('stop_loss',0):,.4f}(-{tp_sl.get('sl_pct',0):.2f}%) | 止盈1${tp_sl.get('take_profit_1',0):,.4f}(+{tp_sl.get('tp1_pct',0):.2f}%) | 盈亏比{tp_sl.get('risk_reward',0):.2f}")
-    lines.append(f"【风险等级】{tp_sl.get('risk_level','中')} | {scores.get('risk_reason','')}")
+    if tf:
+        lines.append('【多周期趋势】' + ' | '.join([t['label']+t['trend'] for t in tf]))
+    lines.append('【成交量】' + str(data.get('volume_signal','')) + ' ' + str(data.get('volume_signal_detail','')))
+    sr = data.get('resistance', [])
+    ss = data.get('support', [])
+    res_str = '、'.join(['$'+str(round(r['price'],4)) for r in sr[:2]]) if sr else '暂无'
+    sup_str = '、'.join(['$'+str(round(s['price'],4)) for s in ss[:2]]) if ss else '暂无'
+    lines.append('【关键价位】压力：' + res_str + ' | 支撑：' + sup_str)
+    lines.append('【预测区间】$' + str(round(pr.get('low',0),4)) + ' ~ $' + str(round(pr.get('high',0),4)))
+    lines.append('【止盈止损】止损$' + str(round(tp_sl.get('stop_loss',0),4)) + ' | 止盈1$' + str(round(tp_sl.get('take_profit_1',0),4)) + ' | 盈亏比' + str(tp_sl.get('risk_reward',0)))
+    lines.append('【风险等级】' + str(tp_sl.get('risk_level','中')))
     return '\n'.join(lines)
+
 
 def send_telegram(message):
     if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID: return False
