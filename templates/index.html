@@ -3,186 +3,242 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>BTC/ETH 短线分析助手</title>
+<title>加密货币短线分析助手</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;background:#080c18;color:#c8d8f0;min-height:100vh;}
-.header{background:linear-gradient(135deg,#0f1628,#08111f);padding:16px;text-align:center;border-bottom:1px solid #1a2a45;}
-.header h1{font-size:18px;color:#5aacff;letter-spacing:1px;}
-.header .sub{font-size:11px;color:#3a5878;margin-top:3px;}
-.coin-tabs{display:flex;gap:0;margin:12px 12px 0;}
-.coin-tab{flex:1;text-align:center;padding:10px;font-size:14px;font-weight:700;cursor:pointer;border:1px solid #1a2a45;color:#3a5878;background:#0c1422;transition:all .2s;}
-.coin-tab:first-child{border-radius:10px 0 0 10px;}
-.coin-tab:last-child{border-radius:0 10px 10px 0;}
-.coin-tab.active{background:#1a3060;color:#5aacff;border-color:#3a6adf;}
-.price-hero{margin:12px;background:linear-gradient(135deg,#0f1e3a,#0a1428);border:1px solid #1a2a45;border-radius:16px;padding:16px;}
-.price-row{display:flex;justify-content:space-between;align-items:flex-start;}
-.price-main .label{font-size:11px;color:#3a5878;}
-.price-main .price{font-size:32px;font-weight:800;color:#5aacff;letter-spacing:-1px;}
-.price-main .change{font-size:13px;margin-top:4px;}
-.price-main .change.up{color:#2adf7a;}
-.price-main .change.down{color:#df4a4a;}
-.price-stats{text-align:right;}
-.stat-row{font-size:11px;color:#5a7898;margin-bottom:4px;}
-.stat-row span{color:#8ab0d0;}
-.analyze-btn{width:calc(100% - 24px);margin:0 12px 12px;background:linear-gradient(135deg,#2a5adf,#1a3aaf);border:none;color:#fff;padding:13px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
-.analyze-btn.loading{background:#1a2a45;color:#3a5878;}
-.nav-tabs{display:flex;padding:0 12px;gap:6px;margin-bottom:10px;overflow-x:auto;}
-.nav-tab{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid #1a2a45;color:#3a5878;background:transparent;white-space:nowrap;}
-.nav-tab.active{background:#1a2a45;color:#5aacff;border-color:#5aacff;}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;background:#060a14;color:#c0d4f0;min-height:100vh;}
+.header{background:linear-gradient(135deg,#0a1428,#060a14);padding:14px 16px;text-align:center;border-bottom:1px solid #152040;}
+.header h1{font-size:17px;color:#4a9eff;letter-spacing:1px;}
+.header .sub{font-size:10px;color:#304060;margin-top:2px;}
+.coin-scroll{display:flex;gap:8px;padding:10px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.coin-scroll::-webkit-scrollbar{display:none;}
+.coin-btn{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid #1a2a45;color:#4a6890;background:#0a1220;white-space:nowrap;transition:all .2s;}
+.coin-btn.active{background:#1a3060;color:#4a9eff;border-color:#3a6adf;}
+.price-card{margin:0 12px 10px;background:linear-gradient(135deg,#0c1830,#08101e);border:1px solid #1a2a45;border-radius:16px;padding:14px;}
+.price-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.price-left .coin-label{font-size:11px;color:#304060;}
+.price-left .price-val{font-size:30px;font-weight:800;color:#4a9eff;letter-spacing:-1px;margin:4px 0;}
+.price-left .change{font-size:13px;}
+.change.up{color:#22d46a;}.change.down{color:#e04a4a;}
+.price-right{text-align:right;font-size:11px;color:#4a6890;line-height:1.8;}
+.price-right span{color:#8ab0d0;}
+.signal-card{margin:0 12px 10px;border-radius:16px;padding:14px;border:2px solid;}
+.signal-card.bull{background:#061a10;border-color:#22d46a;}
+.signal-card.bear{background:#1a0608;border-color:#e04a4a;}
+.signal-card.neutral{background:#0e100a;border-color:#d4a022;}
+.signal-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.signal-text{font-size:18px;font-weight:800;}
+.signal-text.bull{color:#22d46a;}.signal-text.bear{color:#e04a4a;}.signal-text.neutral{color:#d4a022;}
+.signal-score{font-size:28px;font-weight:900;}
+.signal-score.bull{color:#22d46a;}.signal-score.bear{color:#e04a4a;}.signal-score.neutral{color:#d4a022;}
+.score-bars{display:flex;flex-direction:column;gap:8px;}
+.score-row{display:flex;align-items:center;gap:8px;}
+.score-label{font-size:11px;color:#4a6890;width:60px;flex-shrink:0;}
+.score-bar-bg{flex:1;height:8px;background:#0a1220;border-radius:4px;overflow:hidden;}
+.score-bar-fill{height:100%;border-radius:4px;transition:width .8s;}
+.score-num{font-size:12px;font-weight:700;width:28px;text-align:right;flex-shrink:0;}
+.analyze-btn{width:calc(100% - 24px);margin:0 12px 10px;background:linear-gradient(135deg,#2a5adf,#1a3aaf);border:none;color:#fff;padding:13px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;}
+.analyze-btn.loading{background:#1a2a45;color:#304060;}
+.nav-tabs{display:flex;padding:0 12px;gap:6px;margin-bottom:8px;overflow-x:auto;}
+.nav-tabs::-webkit-scrollbar{display:none;}
+.nav-tab{flex-shrink:0;padding:6px 12px;border-radius:20px;font-size:11px;cursor:pointer;border:1px solid #1a2a45;color:#304060;background:transparent;white-space:nowrap;}
+.nav-tab.active{background:#1a2a45;color:#4a9eff;border-color:#4a9eff;}
 .tab-content{display:none;padding:0 12px 80px;}
 .tab-content.active{display:block;}
-.card{background:#0c1422;border:1px solid #1a2a45;border-radius:14px;padding:14px;margin-bottom:10px;}
-.card-title{font-size:11px;color:#3a5878;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
-.indicator-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.ind-item{background:#080c18;border-radius:8px;padding:8px 10px;}
-.ind-label{font-size:10px;color:#3a5878;}
-.ind-value{font-size:14px;font-weight:600;color:#8ab0d0;margin-top:2px;}
-.ind-value.bull{color:#2adf7a;}
-.ind-value.bear{color:#df4a4a;}
-.ind-value.neutral{color:#dfaf2a;}
-.state-badge{display:inline-block;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;margin-bottom:12px;}
-.state-bull{background:#0f2a1a;color:#2adf7a;border:1px solid #1a4a2a;}
-.state-bear{background:#2a0f0f;color:#df4a4a;border:1px solid #4a1a1a;}
-.state-neutral{background:#1a1a0f;color:#dfaf2a;border:1px solid #3a3a1a;}
-.level-list{display:flex;flex-direction:column;gap:6px;}
-.level-item{display:flex;justify-content:space-between;align-items:center;background:#080c18;border-radius:8px;padding:8px 12px;}
-.level-type{font-size:11px;}
-.level-type.res{color:#df4a4a;}
-.level-type.sup{color:#2adf7a;}
-.level-price{font-size:13px;font-weight:600;color:#8ab0d0;}
-.level-dist{font-size:11px;color:#3a5878;}
-.report-box{background:#080c18;border:1px solid #1a2a45;border-radius:12px;padding:14px;white-space:pre-wrap;font-size:13px;line-height:1.8;color:#a0c0e0;}
-.report-box .loading-text{color:#3a5878;text-align:center;padding:20px;}
-.add-form{background:#0c1422;border:1px solid #1a2a45;border-radius:14px;padding:14px;margin-bottom:10px;}
-.form-row{display:flex;gap:8px;margin-bottom:10px;}
-select,input{background:#080c18;border:1px solid #1a2a45;color:#c8d8f0;border-radius:8px;padding:10px 12px;font-size:14px;outline:none;width:100%;}
+.card{background:#0a1220;border:1px solid #152040;border-radius:14px;padding:12px;margin-bottom:10px;}
+.card-title{font-size:10px;color:#304060;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.ind{background:#060a14;border-radius:8px;padding:8px 10px;}
+.ind-l{font-size:10px;color:#304060;}
+.ind-v{font-size:13px;font-weight:600;color:#7aa0c8;margin-top:2px;}
+.ind-v.bull{color:#22d46a;}.ind-v.bear{color:#e04a4a;}.ind-v.neutral{color:#d4a022;}
+.tf-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.tf-item{background:#060a14;border-radius:10px;padding:10px;text-align:center;}
+.tf-label{font-size:10px;color:#304060;margin-bottom:4px;}
+.tf-trend{font-size:13px;font-weight:700;}
+.tf-score{font-size:11px;color:#4a6890;margin-top:3px;}
+.tf-bar{height:4px;border-radius:2px;margin-top:6px;}
+.level-item{display:flex;justify-content:space-between;align-items:center;background:#060a14;border-radius:8px;padding:8px 12px;margin-bottom:6px;}
+.level-left .level-label{font-size:10px;color:#4a6890;}
+.level-left .level-price{font-size:14px;font-weight:700;color:#8ab0d0;}
+.level-right{text-align:right;}
+.level-dist{font-size:11px;color:#4a6890;}
+.level-type{font-size:10px;padding:2px 6px;border-radius:10px;}
+.level-type.res{background:#1a0608;color:#e04a4a;}
+.level-type.sup{color:#22d46a;}
+.range-vis{background:#060a14;border-radius:10px;padding:12px;margin-bottom:8px;}
+.range-bar{position:relative;height:24px;background:#0a1220;border-radius:12px;margin:10px 0;}
+.range-fill{position:absolute;top:0;height:100%;border-radius:12px;background:linear-gradient(90deg,#22d46a22,#4a9eff22,#e04a4a22);}
+.range-cur{position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:#4a9eff;border:2px solid #fff;}
+.range-labels{display:flex;justify-content:space-between;font-size:10px;color:#4a6890;}
+.tp-sl-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+.tp-sl-item{background:#060a14;border-radius:8px;padding:8px;text-align:center;}
+.tp-sl-label{font-size:9px;color:#304060;margin-bottom:3px;}
+.tp-sl-price{font-size:12px;font-weight:700;}
+.tp-sl-pct{font-size:10px;margin-top:2px;}
+.tp-color{color:#22d46a;}.sl-color{color:#e04a4a;}
+.report-box{background:#060a14;border:1px solid #152040;border-radius:12px;padding:14px;white-space:pre-wrap;font-size:12px;line-height:1.9;color:#90b0d0;}
+.placeholder{color:#1a2a45;text-align:center;padding:30px 0;}
+.add-form{background:#0a1220;border:1px solid #152040;border-radius:14px;padding:12px;margin-bottom:10px;}
+.form-row{display:flex;gap:6px;margin-bottom:8px;}
+select,input{background:#060a14;border:1px solid #152040;color:#c0d4f0;border-radius:8px;padding:9px 10px;font-size:13px;outline:none;width:100%;}
 select{flex:1;}input{flex:2;}
-input::placeholder{color:#2a3a55;}
-.btn-add{width:100%;background:linear-gradient(135deg,#2a5adf,#1a3aaf);border:none;color:#fff;padding:12px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;}
-.alert-item{background:#0c1422;border:1px solid #1a2a45;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-.alert-coin{font-size:13px;font-weight:700;color:#5aacff;}
-.alert-cond{font-size:12px;color:#5a7898;margin-top:2px;}
-.badge{font-size:11px;padding:3px 8px;border-radius:20px;}
-.badge-wait{background:#1a2a45;color:#5aacff;}
-.badge-done{background:#0f2a1a;color:#2adf7a;}
-.btn-del{background:#1a0f0f;border:1px solid #3a1a1a;color:#df4a4a;padding:5px 10px;border-radius:8px;font-size:12px;cursor:pointer;margin-left:6px;}
-.empty{text-align:center;color:#2a3a55;font-size:13px;padding:24px;}
-.update-bar{text-align:center;font-size:11px;color:#2a3a55;padding:6px;}
-.history-item{background:#0c1422;border:1px solid #1a2a45;border-left:3px solid #2adf7a;border-radius:10px;padding:10px 14px;margin-bottom:8px;}
-.h-top{display:flex;justify-content:space-between;}
-.h-coin{font-size:13px;font-weight:600;color:#2adf7a;}
-.h-time{font-size:11px;color:#2a3a55;}
-.h-detail{font-size:12px;color:#5a7898;margin-top:4px;}
-.rsi-bar-wrap{margin-top:6px;}
-.rsi-bar-bg{height:6px;background:#1a2a45;border-radius:3px;position:relative;}
-.rsi-bar-fill{height:100%;border-radius:3px;transition:width .5s;}
-.rsi-label{display:flex;justify-content:space-between;font-size:10px;color:#3a5878;margin-top:2px;}
+.btn-add{width:100%;background:linear-gradient(135deg,#2a5adf,#1a3aaf);border:none;color:#fff;padding:11px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;}
+.alert-item{background:#0a1220;border:1px solid #152040;border-radius:12px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.badge{font-size:10px;padding:3px 8px;border-radius:20px;}
+.badge-wait{background:#1a2a45;color:#4a9eff;}.badge-done{background:#061a10;color:#22d46a;}
+.btn-del{background:#1a0608;border:1px solid #3a1a1a;color:#e04a4a;padding:5px 9px;border-radius:8px;font-size:11px;cursor:pointer;margin-left:6px;}
+.empty{text-align:center;color:#1a2a45;font-size:12px;padding:20px;}
+.hist-item{background:#0a1220;border:1px solid #152040;border-left:3px solid #22d46a;border-radius:10px;padding:9px 12px;margin-bottom:8px;}
+.update-bar{text-align:center;font-size:10px;color:#1a2a45;padding:4px;}
+.rsi-wrap{margin-top:6px;}
+.rsi-bg{height:5px;background:#0a1220;border-radius:3px;}
+.rsi-fill{height:100%;border-radius:3px;transition:width .5s;}
+.rsi-lbl{display:flex;justify-content:space-between;font-size:9px;color:#2a3a55;margin-top:2px;}
 </style>
 </head>
 <body>
 <div class="header">
-  <h1>₿ 短线行情分析助手</h1>
-  <div class="sub">BTC / ETH · 技术指标 · AI分析 · Telegram提醒</div>
+  <h1>📊 加密货币短线分析助手</h1>
+  <div class="sub">BTC · ETH · DOGE · BCH · ZEC · 评分系统 · AI分析</div>
 </div>
-<div class="coin-tabs">
-  <div class="coin-tab active" onclick="switchCoin('BTC')">₿ BTC/USDT</div>
-  <div class="coin-tab" onclick="switchCoin('ETH')">Ξ ETH/USDT</div>
-</div>
-<div class="price-hero">
-  <div class="price-row">
-    <div class="price-main">
-      <div class="label" id="coin-label">BTC/USDT</div>
-      <div class="price" id="main-price">--</div>
+<div class="coin-scroll" id="coin-scroll"></div>
+<div class="price-card">
+  <div class="price-top">
+    <div class="price-left">
+      <div class="coin-label" id="coin-label">BTC/USDT</div>
+      <div class="price-val" id="main-price">--</div>
       <div class="change" id="main-change">--</div>
     </div>
-    <div class="price-stats">
-      <div class="stat-row">24H高 <span id="stat-high">--</span></div>
-      <div class="stat-row">24H低 <span id="stat-low">--</span></div>
-      <div class="stat-row">成交量 <span id="stat-vol">--</span>M</div>
+    <div class="price-right">
+      <div>24H高 <span id="stat-high">--</span></div>
+      <div>24H低 <span id="stat-low">--</span></div>
+      <div>成交量 <span id="stat-vol">--</span>M</div>
     </div>
   </div>
-  <div class="update-bar" id="update-bar">点击分析获取最新数据</div>
+  <div class="update-bar" id="update-bar">点击分析获取数据</div>
+</div>
+<div class="signal-card neutral" id="signal-card">
+  <div class="signal-top">
+    <div>
+      <div style="font-size:10px;color:#4a6890;margin-bottom:4px;">综合交易信号</div>
+      <div class="signal-text neutral" id="signal-text">待分析</div>
+    </div>
+    <div class="signal-score neutral" id="signal-score">--</div>
+  </div>
+  <div class="score-bars">
+    <div class="score-row"><div class="score-label">趋势</div><div class="score-bar-bg"><div class="score-bar-fill" id="bar-trend" style="width:0%;background:#4a9eff;"></div></div><div class="score-num" id="num-trend" style="color:#4a9eff">--</div></div>
+    <div class="score-row"><div class="score-label">动能</div><div class="score-bar-bg"><div class="score-bar-fill" id="bar-momentum" style="width:0%;background:#9a6aff;"></div></div><div class="score-num" id="num-momentum" style="color:#9a6aff">--</div></div>
+    <div class="score-row"><div class="score-label">量能</div><div class="score-bar-bg"><div class="score-bar-fill" id="bar-volume" style="width:0%;background:#22d46a;"></div></div><div class="score-num" id="num-volume" style="color:#22d46a">--</div></div>
+    <div class="score-row"><div class="score-label">风险⚠️</div><div class="score-bar-bg"><div class="score-bar-fill" id="bar-risk" style="width:0%;background:#e04a4a;"></div></div><div class="score-num" id="num-risk" style="color:#e04a4a">--</div></div>
+  </div>
+  <div id="signal-reason" style="font-size:11px;color:#4a6890;margin-top:10px;"></div>
 </div>
 <button class="analyze-btn" id="analyze-btn" onclick="doAnalyze()">📊 立即分析 + 发送Telegram</button>
 <div class="nav-tabs">
-  <div class="nav-tab active" onclick="switchTab('report')">📝 AI报告</div>
-  <div class="nav-tab" onclick="switchTab('indicators')">📈 技术指标</div>
+  <div class="nav-tab active" onclick="switchTab('report')">📝 报告</div>
+  <div class="nav-tab" onclick="switchTab('trends')">🕐 多周期</div>
+  <div class="nav-tab" onclick="switchTab('indicators')">📈 指标</div>
   <div class="nav-tab" onclick="switchTab('levels')">🎯 支撑压力</div>
-  <div class="nav-tab" onclick="switchTab('alerts')">🔔 价格提醒</div>
-  <div class="nav-tab" onclick="switchTab('history')">📋 触发记录</div>
+  <div class="nav-tab" onclick="switchTab('tpsl')">💰 止盈止损</div>
+  <div class="nav-tab" onclick="switchTab('alerts')">🔔 提醒</div>
+  <div class="nav-tab" onclick="switchTab('history')">📋 记录</div>
 </div>
 <div id="tab-report" class="tab-content active">
   <div class="card">
     <div class="card-title">AI 短线分析报告</div>
-    <div class="report-box" id="report-box"><div class="loading-text">点击「立即分析」获取 AI 报告 📊</div></div>
+    <div class="report-box" id="report-box"><div class="placeholder">点击「立即分析」获取报告</div></div>
+  </div>
+</div>
+<div id="tab-trends" class="tab-content">
+  <div class="card">
+    <div class="card-title">多周期趋势判断</div>
+    <div class="tf-grid" id="tf-grid"><div class="tf-item"><div class="tf-label">待分析</div></div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">成交量信号</div>
+    <div class="ind" style="margin-bottom:8px"><div class="ind-l">信号</div><div class="ind-v" id="vol-signal">--</div></div>
+    <div class="ind"><div class="ind-l">详情</div><div class="ind-v" id="vol-detail" style="font-size:11px;white-space:normal;line-height:1.5">--</div></div>
   </div>
 </div>
 <div id="tab-indicators" class="tab-content">
   <div class="card">
-    <div class="card-title">市场状态</div>
-    <div id="market-state"><span class="state-badge state-neutral">待分析</span></div>
-  </div>
-  <div class="card">
-    <div class="card-title">RSI 指标</div>
-    <div class="ind-item" style="margin-bottom:8px">
-      <div class="ind-label">RSI (1H)</div>
-      <div class="ind-value" id="rsi-1h-val">--</div>
-      <div class="rsi-bar-wrap">
-        <div class="rsi-bar-bg"><div class="rsi-bar-fill" id="rsi-bar" style="width:50%;background:#dfaf2a;"></div></div>
-        <div class="rsi-label"><span>超卖30</span><span>中性50</span><span>超买70</span></div>
-      </div>
+    <div class="card-title">RSI 多周期</div>
+    <div class="ind" style="margin-bottom:8px">
+      <div class="ind-l">RSI 1H</div><div class="ind-v" id="rsi-1h">--</div>
+      <div class="rsi-wrap"><div class="rsi-bg"><div class="rsi-fill" id="rsi-bar" style="width:50%;background:#d4a022;"></div></div>
+      <div class="rsi-lbl"><span>超卖30</span><span>中性50</span><span>超买70</span></div></div>
     </div>
-    <div class="indicator-grid">
-      <div class="ind-item"><div class="ind-label">RSI (4H)</div><div class="ind-value" id="rsi-4h">--</div></div>
-      <div class="ind-item"><div class="ind-label">RSI (1D)</div><div class="ind-value" id="rsi-1d">--</div></div>
+    <div class="grid2">
+      <div class="ind"><div class="ind-l">RSI 4H</div><div class="ind-v" id="rsi-4h">--</div></div>
+      <div class="ind"><div class="ind-l">RSI 1D</div><div class="ind-v" id="rsi-1d">--</div></div>
     </div>
   </div>
   <div class="card">
-    <div class="card-title">均线 MA / EMA (1H)</div>
-    <div class="indicator-grid">
-      <div class="ind-item"><div class="ind-label">MA5</div><div class="ind-value" id="ma5">--</div></div>
-      <div class="ind-item"><div class="ind-label">MA20</div><div class="ind-value" id="ma20">--</div></div>
-      <div class="ind-item"><div class="ind-label">MA50</div><div class="ind-value" id="ma50">--</div></div>
-      <div class="ind-item"><div class="ind-label">EMA20</div><div class="ind-value" id="ema20">--</div></div>
+    <div class="card-title">均线 (1H)</div>
+    <div class="grid2">
+      <div class="ind"><div class="ind-l">MA5</div><div class="ind-v" id="ma5">--</div></div>
+      <div class="ind"><div class="ind-l">MA20</div><div class="ind-v" id="ma20">--</div></div>
+      <div class="ind"><div class="ind-l">MA50</div><div class="ind-v" id="ma50">--</div></div>
+      <div class="ind"><div class="ind-l">EMA20</div><div class="ind-v" id="ema20">--</div></div>
     </div>
   </div>
   <div class="card">
-    <div class="card-title">MACD + 布林带 + ATR (1H)</div>
-    <div class="indicator-grid">
-      <div class="ind-item"><div class="ind-label">MACD</div><div class="ind-value" id="macd">--</div></div>
-      <div class="ind-item"><div class="ind-label">Signal</div><div class="ind-value" id="macd-sig">--</div></div>
-      <div class="ind-item"><div class="ind-label">BB上轨</div><div class="ind-value" id="bb-upper">--</div></div>
-      <div class="ind-item"><div class="ind-label">BB下轨</div><div class="ind-value" id="bb-lower">--</div></div>
-      <div class="ind-item"><div class="ind-label">ATR</div><div class="ind-value" id="atr">--</div></div>
-      <div class="ind-item"><div class="ind-label">量比</div><div class="ind-value" id="vol-ratio">--</div></div>
+    <div class="card-title">MACD · 布林带 · ATR (1H)</div>
+    <div class="grid2">
+      <div class="ind"><div class="ind-l">MACD</div><div class="ind-v" id="macd">--</div></div>
+      <div class="ind"><div class="ind-l">Signal</div><div class="ind-v" id="macd-sig">--</div></div>
+      <div class="ind"><div class="ind-l">BB上轨</div><div class="ind-v" id="bb-upper">--</div></div>
+      <div class="ind"><div class="ind-l">BB下轨</div><div class="ind-v" id="bb-lower">--</div></div>
+      <div class="ind"><div class="ind-l">ATR</div><div class="ind-v" id="atr">--</div></div>
+      <div class="ind"><div class="ind-l">量比</div><div class="ind-v" id="vol-ratio">--</div></div>
     </div>
   </div>
 </div>
 <div id="tab-levels" class="tab-content">
   <div class="card">
-    <div class="card-title">上方压力位</div>
-    <div class="level-list" id="res-list"><div class="empty">待分析</div></div>
-  </div>
-  <div class="card">
-    <div class="card-title">下方支撑位</div>
-    <div class="level-list" id="sup-list"><div class="empty">待分析</div></div>
-  </div>
-  <div class="card">
-    <div class="card-title">区间参考</div>
-    <div class="indicator-grid">
-      <div class="ind-item"><div class="ind-label">日内高点</div><div class="ind-value" id="intraday-high">--</div></div>
-      <div class="ind-item"><div class="ind-label">日内低点</div><div class="ind-value" id="intraday-low">--</div></div>
-      <div class="ind-item"><div class="ind-label">周内高点</div><div class="ind-value" id="week-high">--</div></div>
-      <div class="ind-item"><div class="ind-label">周内低点</div><div class="ind-value" id="week-low">--</div></div>
+    <div class="card-title">短线预测区间</div>
+    <div class="range-vis">
+      <div class="range-labels"><span id="range-low">--</span><span style="color:#4a9eff">当前价</span><span id="range-high">--</span></div>
+      <div class="range-bar"><div class="range-fill" style="left:0;width:100%;"></div><div class="range-cur" id="range-dot" style="left:50%;"></div></div>
+      <div style="text-align:center;font-size:10px;color:#4a6890;" id="range-basis">待分析</div>
     </div>
+  </div>
+  <div class="card"><div class="card-title">上方压力位</div><div id="res-list"><div class="empty">待分析</div></div></div>
+  <div class="card"><div class="card-title">下方支撑位</div><div id="sup-list"><div class="empty">待分析</div></div></div>
+  <div class="card">
+    <div class="card-title">区间高低点</div>
+    <div class="grid2">
+      <div class="ind"><div class="ind-l">日内高</div><div class="ind-v" id="intraday-high">--</div></div>
+      <div class="ind"><div class="ind-l">日内低</div><div class="ind-v" id="intraday-low">--</div></div>
+      <div class="ind"><div class="ind-l">周内高</div><div class="ind-v" id="week-high">--</div></div>
+      <div class="ind"><div class="ind-l">周内低</div><div class="ind-v" id="week-low">--</div></div>
+    </div>
+  </div>
+</div>
+<div id="tab-tpsl" class="tab-content">
+  <div class="card">
+    <div class="card-title">止盈止损建议</div>
+    <div class="tp-sl-grid" style="margin-bottom:10px">
+      <div class="tp-sl-item"><div class="tp-sl-label">🔴 止损位</div><div class="tp-sl-price sl-color" id="sl-price">--</div><div class="tp-sl-pct sl-color" id="sl-pct">--</div></div>
+      <div class="tp-sl-item"><div class="tp-sl-label">🟢 止盈1</div><div class="tp-sl-price tp-color" id="tp1-price">--</div><div class="tp-sl-pct tp-color" id="tp1-pct">--</div></div>
+      <div class="tp-sl-item"><div class="tp-sl-label">🟢 止盈2</div><div class="tp-sl-price tp-color" id="tp2-price">--</div><div class="tp-sl-pct tp-color" id="tp2-pct">--</div></div>
+    </div>
+    <div class="grid2">
+      <div class="ind"><div class="ind-l">盈亏比</div><div class="ind-v" id="rr">--</div></div>
+      <div class="ind"><div class="ind-l">风险等级</div><div class="ind-v" id="risk-level">--</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">评分详细说明</div>
+    <div style="font-size:11px;color:#4a6890;line-height:2;" id="score-reasons">待分析后显示</div>
   </div>
 </div>
 <div id="tab-alerts" class="tab-content">
   <div class="add-form">
-    <div class="card-title" style="margin-bottom:10px">添加价格提醒</div>
+    <div class="card-title" style="margin-bottom:8px">添加价格提醒</div>
     <div class="form-row">
-      <select id="sel-coin"><option value="BTC">BTC</option><option value="ETH">ETH</option></select>
+      <select id="sel-coin"></select>
       <select id="sel-cond"><option value="above">高于 ↑</option><option value="below">低于 ↓</option></select>
       <input id="inp-price" type="number" placeholder="目标价格"/>
     </div>
@@ -194,19 +250,231 @@ input::placeholder{color:#2a3a55;}
   <div id="history-list"><div class="empty">暂无触发记录</div></div>
 </div>
 <script>
-let currentCoin='BTC';
-function fmt(n,dec=2){if(!n&&n!==0)return'--';return n>999?n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}):parseFloat(n).toFixed(dec);}
-function fmtP(n){return n>=0?'+'+n.toFixed(2)+'%':n.toFixed(2)+'%';}
-function switchCoin(coin){currentCoin=coin;document.querySelectorAll('.coin-tab').forEach((t,i)=>t.classList.toggle('active',['BTC','ETH'][i]===coin));document.getElementById('coin-label').textContent=coin+'/USDT';document.getElementById('main-price').textContent='--';document.getElementById('report-box').innerHTML='<div class="loading-text">点击「立即分析」获取 AI 报告 📊</div>';loadPrices();}
-function switchTab(name){const tabs=['report','indicators','levels','alerts','history'];document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',tabs[i]===name));document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));document.getElementById('tab-'+name).classList.add('active');if(name==='alerts')loadAlerts();if(name==='history')loadHistory();}
-async function loadPrices(){try{const r=await fetch('/api/prices');const d=await r.json();const p=d[currentCoin];if(p)document.getElementById('main-price').textContent='$'+fmt(p);if(d.last_update)document.getElementById('update-bar').textContent='价格更新：'+d.last_update;}catch(e){}}
-async function doAnalyze(){const btn=document.getElementById('analyze-btn');btn.textContent='⏳ 分析中，请稍候...';btn.classList.add('loading');btn.disabled=true;document.getElementById('report-box').innerHTML='<div class="loading-text">⏳ 正在获取数据并生成分析报告...<br>约需 15-30 秒</div>';try{const r=await fetch('/api/report/'+currentCoin);const d=await r.json();if(d.error)throw new Error(d.error);updateAllDisplays(d);}catch(e){document.getElementById('report-box').innerHTML='<div class="loading-text">❌ 分析失败，请重试</div>';}btn.textContent='📊 立即分析 + 发送Telegram';btn.classList.remove('loading');btn.disabled=false;}
-function updateAllDisplays(d){document.getElementById('main-price').textContent='$'+fmt(d.price);const ch=d.change_24h||0;const chEl=document.getElementById('main-change');chEl.textContent=fmtP(ch)+' (24H)';chEl.className='change '+(ch>=0?'up':'down');document.getElementById('stat-high').textContent='$'+fmt(d.high_24h);document.getElementById('stat-low').textContent='$'+fmt(d.low_24h);document.getElementById('stat-vol').textContent=fmt(d.quote_volume_24h,1);document.getElementById('update-bar').textContent='分析时间：'+(d.updated_at||'');document.getElementById('report-box').textContent=d.report||'报告生成失败';const state=d.market_state||'震荡';const cls=state.includes('上涨')?'state-bull':state.includes('下跌')?'state-bear':'state-neutral';document.getElementById('market-state').innerHTML=`<span class="state-badge ${cls}">${state}</span>`;const rsi=d.rsi_1h;document.getElementById('rsi-1h-val').textContent=rsi?rsi.toFixed(1):'--';document.getElementById('rsi-1h-val').className='ind-value '+(rsi>70?'bear':rsi<30?'bull':'neutral');if(rsi){document.getElementById('rsi-bar').style.width=rsi+'%';document.getElementById('rsi-bar').style.background=rsi>70?'#df4a4a':rsi<30?'#2adf7a':'#dfaf2a';}document.getElementById('rsi-4h').textContent=d.rsi_4h?d.rsi_4h.toFixed(1):'--';document.getElementById('rsi-1d').textContent=d.rsi_1d?d.rsi_1d.toFixed(1):'--';const price=d.price;[['ma5','ma5_1h'],['ma20','ma20_1h'],['ma50','ma50_1h'],['ema20','ema20_1h']].forEach(([id,key])=>{const val=d[key];const el=document.getElementById(id);if(el){el.textContent=val?'$'+fmt(val):'--';el.className='ind-value '+(val&&price>val?'bull':val?'bear':'');}});document.getElementById('macd').textContent=d.macd_1h?d.macd_1h.toFixed(2):'--';document.getElementById('macd').className='ind-value '+(d.macd_1h>0?'bull':'bear');document.getElementById('macd-sig').textContent=d.macd_signal_1h?d.macd_signal_1h.toFixed(2):'--';document.getElementById('bb-upper').textContent=d.bb_upper_1h?'$'+fmt(d.bb_upper_1h):'--';document.getElementById('bb-lower').textContent=d.bb_lower_1h?'$'+fmt(d.bb_lower_1h):'--';document.getElementById('atr').textContent=d.atr_1h?'$'+fmt(d.atr_1h):'--';const vr=d.vol_ratio_1h;document.getElementById('vol-ratio').textContent=vr?vr.toFixed(2)+'x':'--';document.getElementById('vol-ratio').className='ind-value '+(vr>1.5?'bull':vr<0.7?'bear':'neutral');const res=d.resistance_levels||[];const sup=d.support_levels||[];document.getElementById('res-list').innerHTML=res.length?res.map(l=>`<div class="level-item"><span class="level-type res">▼ 压力</span><span class="level-price">$${fmt(l)}</span><span class="level-dist">${((l-price)/price*100).toFixed(2)}%</span></div>`).join(''):'<div class="empty">暂无明显压力位</div>';document.getElementById('sup-list').innerHTML=sup.length?sup.map(l=>`<div class="level-item"><span class="level-type sup">▲ 支撑</span><span class="level-price">$${fmt(l)}</span><span class="level-dist">${((l-price)/price*100).toFixed(2)}%</span></div>`).join(''):'<div class="empty">暂无明显支撑位</div>';document.getElementById('intraday-high').textContent=d.intraday_high?'$'+fmt(d.intraday_high):'--';document.getElementById('intraday-low').textContent=d.intraday_low?'$'+fmt(d.intraday_low):'--';document.getElementById('week-high').textContent=d.week_high?'$'+fmt(d.week_high):'--';document.getElementById('week-low').textContent=d.week_low?'$'+fmt(d.week_low):'--';}
-async function loadAlerts(){try{const r=await fetch('/api/alerts');const alerts=await r.json();const el=document.getElementById('alert-list');if(!alerts.length){el.innerHTML='<div class="empty">暂无提醒</div>';return;}el.innerHTML=alerts.map(a=>`<div class="alert-item"><div><div class="alert-coin">${a.coin}/USDT</div><div class="alert-cond">${a.condition==='above'?'📈 高于':'📉 低于'} $${fmt(a.price)}</div></div><div style="display:flex;align-items:center;gap:6px"><span class="badge ${a.triggered?'badge-done':'badge-wait'}">${a.triggered?'✅已触发':'⏳等待中'}</span><button class="btn-del" onclick="delAlert(${a.id})">删除</button></div></div>`).join('');}catch(e){}}
-async function addAlert(){const coin=document.getElementById('sel-coin').value;const condition=document.getElementById('sel-cond').value;const price=document.getElementById('inp-price').value;if(!price){alert('请输入目标价格');return;}await fetch('/api/alerts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({coin,condition,price})});document.getElementById('inp-price').value='';loadAlerts();}
+const COINS = ['BTC','ETH','DOGE','BCH','ZEC'];
+let currentCoin = 'BTC';
+
+function initCoins() {
+  const scroll = document.getElementById('coin-scroll');
+  const sel = document.getElementById('sel-coin');
+  COINS.forEach(c => {
+    const btn = document.createElement('div');
+    btn.className = 'coin-btn' + (c==='BTC'?' active':'');
+    btn.textContent = c + '/USDT';
+    btn.onclick = () => switchCoin(c);
+    scroll.appendChild(btn);
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    sel.appendChild(opt);
+  });
+}
+
+function fmt(n, dec) {
+  if(n===null||n===undefined||n==='') return '--';
+  n = parseFloat(n);
+  if(isNaN(n)) return '--';
+  if(dec !== undefined) return n.toFixed(dec);
+  if(Math.abs(n) >= 10000) return n.toLocaleString('en-US',{maximumFractionDigits:0});
+  if(Math.abs(n) >= 100) return n.toFixed(2);
+  if(Math.abs(n) >= 1) return n.toFixed(4);
+  return n.toFixed(6);
+}
+
+function switchCoin(coin) {
+  currentCoin = coin;
+  document.querySelectorAll('.coin-btn').forEach((b,i) => b.classList.toggle('active', COINS[i]===coin));
+  document.getElementById('coin-label').textContent = coin + '/USDT';
+  document.getElementById('main-price').textContent = '--';
+  document.getElementById('report-box').innerHTML = '<div class="placeholder">点击「立即分析」获取报告</div>';
+  loadPrices();
+}
+
+function switchTab(name) {
+  const tabs = ['report','trends','indicators','levels','tpsl','alerts','history'];
+  document.querySelectorAll('.nav-tab').forEach((t,i) => t.classList.toggle('active', tabs[i]===name));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='alerts') loadAlerts();
+  if(name==='history') loadHistory();
+}
+
+async function loadPrices() {
+  try {
+    const r = await fetch('/api/prices');
+    const d = await r.json();
+    const p = d[currentCoin];
+    if(p) document.getElementById('main-price').textContent = '$' + fmt(p);
+    if(d.last_update) document.getElementById('update-bar').textContent = '价格更新：' + d.last_update;
+  } catch(e) {}
+}
+
+async function doAnalyze() {
+  const btn = document.getElementById('analyze-btn');
+  btn.textContent = '⏳ 分析中，约15-30秒...';
+  btn.classList.add('loading'); btn.disabled = true;
+  document.getElementById('report-box').innerHTML = '<div class="placeholder">⏳ 正在计算指标并生成报告...</div>';
+  try {
+    const r = await fetch('/api/report/' + currentCoin);
+    const d = await r.json();
+    if(d.error) throw new Error(d.error);
+    updateAll(d);
+  } catch(e) {
+    document.getElementById('report-box').innerHTML = '<div class="placeholder">❌ 分析失败，请重试</div>';
+  }
+  btn.textContent = '📊 立即分析 + 发送Telegram';
+  btn.classList.remove('loading'); btn.disabled = false;
+}
+
+function updateAll(d) {
+  const price = d.price || 0;
+  const sc = d.scores || {};
+  const tp = d.tp_sl || {};
+  const pr = d.predicted_range || {};
+  document.getElementById('main-price').textContent = '$' + fmt(price);
+  const ch = d.change_24h || 0;
+  const chEl = document.getElementById('main-change');
+  chEl.textContent = (ch>=0?'+':'') + ch.toFixed(2) + '% (24H)';
+  chEl.className = 'change ' + (ch>=0?'up':'down');
+  document.getElementById('stat-high').textContent = '$' + fmt(d.high_24h);
+  document.getElementById('stat-low').textContent = '$' + fmt(d.low_24h);
+  document.getElementById('stat-vol').textContent = fmt(d.quote_volume_24h, 1);
+  document.getElementById('update-bar').textContent = '分析时间：' + (d.updated_at||'');
+  const sigCls = sc.signal_class || 'neutral';
+  document.getElementById('signal-card').className = 'signal-card ' + sigCls;
+  const stEl = document.getElementById('signal-text');
+  stEl.textContent = sc.signal_text || '--';
+  stEl.className = 'signal-text ' + sigCls;
+  const ssEl = document.getElementById('signal-score');
+  ssEl.textContent = sc.signal || '--';
+  ssEl.className = 'signal-score ' + sigCls;
+  document.getElementById('signal-reason').textContent = sc.signal_reason || '';
+  [['trend','#4a9eff'],['momentum','#9a6aff'],['volume','#22d46a'],['risk','#e04a4a']].forEach(([k,c]) => {
+    const v = sc[k] || 0;
+    document.getElementById('bar-'+k).style.width = v + '%';
+    document.getElementById('bar-'+k).style.background = c;
+    document.getElementById('num-'+k).textContent = v;
+  });
+  document.getElementById('report-box').textContent = d.report || '报告生成失败';
+  const tfs = d.timeframe_trends || [];
+  if(tfs.length) {
+    document.getElementById('tf-grid').innerHTML = tfs.map(t => {
+      const cls = t.trend.includes('上涨')?'#22d46a':t.trend.includes('下跌')?'#e04a4a':'#d4a022';
+      return `<div class="tf-item">
+        <div class="tf-label">${t.label}</div>
+        <div class="tf-trend" style="color:${cls}">${t.trend}</div>
+        <div class="tf-score">${t.score||'--'}/100</div>
+        <div class="tf-bar" style="width:${t.score||50}%;background:${cls}"></div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('vol-signal').textContent = d.volume_signal || '--';
+  document.getElementById('vol-detail').textContent = d.volume_signal_detail || '--';
+  const rsi = d.rsi_1h;
+  document.getElementById('rsi-1h').textContent = rsi ? rsi.toFixed(1) : '--';
+  document.getElementById('rsi-1h').className = 'ind-v ' + (rsi>70?'bear':rsi<30?'bull':'neutral');
+  if(rsi) {
+    document.getElementById('rsi-bar').style.width = rsi + '%';
+    document.getElementById('rsi-bar').style.background = rsi>70?'#e04a4a':rsi<30?'#22d46a':'#d4a022';
+  }
+  document.getElementById('rsi-4h').textContent = d.rsi_4h ? d.rsi_4h.toFixed(1) : '--';
+  document.getElementById('rsi-1d').textContent = d.rsi_1d ? d.rsi_1d.toFixed(1) : '--';
+</script>
+<script>
+  [['ma5','ma5_1h'],['ma20','ma20_1h'],['ma50','ma50_1h'],['ema20','ema20_1h']].forEach(([id,key])=>{
+    const v=d[key]; const el=document.getElementById(id);
+    if(el){el.textContent=v?'$'+fmt(v):'--'; el.className='ind-v '+(v&&price>v?'bull':v?'bear':'');}
+  });
+  document.getElementById('macd').textContent = d.macd_1h ? fmt(d.macd_1h,4) : '--';
+  document.getElementById('macd').className = 'ind-v ' + (d.macd_1h>0?'bull':'bear');
+  document.getElementById('macd-sig').textContent = d.macd_signal_1h ? fmt(d.macd_signal_1h,4) : '--';
+  document.getElementById('bb-upper').textContent = d.bb_upper_1h ? '$'+fmt(d.bb_upper_1h) : '--';
+  document.getElementById('bb-lower').textContent = d.bb_lower_1h ? '$'+fmt(d.bb_lower_1h) : '--';
+  document.getElementById('atr').textContent = d.atr_1h ? '$'+fmt(d.atr_1h) : '--';
+  const vr = d.vol_ratio_1h;
+  document.getElementById('vol-ratio').textContent = vr ? vr.toFixed(2)+'x' : '--';
+  document.getElementById('vol-ratio').className = 'ind-v '+(vr>1.5?'bull':vr<0.7?'bear':'neutral');
+  const res = d.resistance || [];
+  const sup = d.support || [];
+  document.getElementById('res-list').innerHTML = res.length ?
+    res.map(r=>`<div class="level-item"><div class="level-left"><div class="level-label">${r.label||'压力位'}</div><div class="level-price">$${fmt(r.price)}</div></div><div class="level-right"><div class="level-type res">▼ 压力</div><div class="level-dist">${r.dist>0?'+':''}${r.dist}%</div></div></div>`).join('') :
+    '<div class="empty">暂无明显压力位</div>';
+  document.getElementById('sup-list').innerHTML = sup.length ?
+    sup.map(s=>`<div class="level-item"><div class="level-left"><div class="level-label">${s.label||'支撑位'}</div><div class="level-price">$${fmt(s.price)}</div></div><div class="level-right"><div class="level-type sup">▲ 支撑</div><div class="level-dist">${s.dist}%</div></div></div>`).join('') :
+    '<div class="empty">暂无明显支撑位</div>';
+  if(pr.low && pr.high) {
+    document.getElementById('range-low').textContent = '$'+fmt(pr.low);
+    document.getElementById('range-high').textContent = '$'+fmt(pr.high);
+    document.getElementById('range-basis').textContent = pr.basis || '';
+    const pct = (price-pr.low)/(pr.high-pr.low)*100;
+    document.getElementById('range-dot').style.left = Math.max(5,Math.min(95,pct))+'%';
+  }
+  document.getElementById('intraday-high').textContent = d.intraday_high?'$'+fmt(d.intraday_high):'--';
+  document.getElementById('intraday-low').textContent = d.intraday_low?'$'+fmt(d.intraday_low):'--';
+  document.getElementById('week-high').textContent = d.week_high?'$'+fmt(d.week_high):'--';
+  document.getElementById('week-low').textContent = d.week_low?'$'+fmt(d.week_low):'--';
+  document.getElementById('sl-price').textContent = '$'+fmt(tp.stop_loss);
+  document.getElementById('sl-pct').textContent = '-'+(tp.sl_pct||0).toFixed(2)+'%';
+  document.getElementById('tp1-price').textContent = '$'+fmt(tp.take_profit_1);
+  document.getElementById('tp1-pct').textContent = '+'+(tp.tp1_pct||0).toFixed(2)+'%';
+  document.getElementById('tp2-price').textContent = '$'+fmt(tp.take_profit_2);
+  document.getElementById('tp2-pct').textContent = '+'+(tp.tp2_pct||0).toFixed(2)+'%';
+  document.getElementById('rr').textContent = (tp.risk_reward||0).toFixed(2)+':1';
+  const rlEl = document.getElementById('risk-level');
+  rlEl.textContent = tp.risk_level||'--';
+  rlEl.className = 'ind-v '+(tp.risk_level==='高'?'bear':tp.risk_level==='低'?'bull':'neutral');
+  document.getElementById('score-reasons').innerHTML = [
+    `📈 趋势分 ${sc.trend||'--'}/100：${sc.trend_reason||''}`,
+    `⚡ 动能分 ${sc.momentum||'--'}/100：${sc.momentum_reason||''}`,
+    `📊 量能分 ${sc.volume||'--'}/100：${sc.volume_reason||''}`,
+    `⚠️ 风险分 ${sc.risk||'--'}/100：${sc.risk_reason||''}`,
+    `🎯 信号分 ${sc.signal||'--'}/100：${sc.signal_reason||''}`,
+  ].join('<br><br>');
+}
+
+async function loadAlerts() {
+  try {
+    const r=await fetch('/api/alerts'); const alerts=await r.json();
+    const el=document.getElementById('alert-list');
+    if(!alerts.length){el.innerHTML='<div class="empty">暂无提醒</div>';return;}
+    el.innerHTML=alerts.map(a=>`<div class="alert-item">
+      <div><div style="font-size:12px;font-weight:700;color:#4a9eff">${a.coin}/USDT</div>
+      <div style="font-size:11px;color:#4a6890;margin-top:2px">${a.condition==='above'?'📈 高于':'📉 低于'} $${fmt(a.price)}</div></div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="badge ${a.triggered?'badge-done':'badge-wait'}">${a.triggered?'✅已触发':'⏳等待中'}</span>
+        <button class="btn-del" onclick="delAlert(${a.id})">删除</button>
+      </div></div>`).join('');
+  } catch(e){}
+}
+
+async function addAlert() {
+  const coin=document.getElementById('sel-coin').value;
+  const condition=document.getElementById('sel-cond').value;
+  const price=document.getElementById('inp-price').value;
+  if(!price){alert('请输入目标价格');return;}
+  await fetch('/api/alerts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({coin,condition,price})});
+  document.getElementById('inp-price').value=''; loadAlerts();
+}
+
 async function delAlert(id){await fetch('/api/alerts/'+id,{method:'DELETE'});loadAlerts();}
-async function loadHistory(){try{const r=await fetch('/api/history');const hist=await r.json();const el=document.getElementById('history-list');if(!hist.length){el.innerHTML='<div class="empty">暂无触发记录</div>';return;}el.innerHTML=hist.map(h=>`<div class="history-item"><div class="h-top"><span class="h-coin">${h.coin}/USDT ${h.condition==='above'?'📈':'📉'}</span><span class="h-time">${h.time}</span></div><div class="h-detail">${h.condition==='above'?'高于':'低于'} $${fmt(h.target)} · 触发价 $${fmt(h.price)}</div></div>`).join('');}catch(e){}}
-loadPrices();loadAlerts();setInterval(loadPrices,30000);
+
+async function loadHistory() {
+  try {
+    const r=await fetch('/api/history'); const hist=await r.json();
+    const el=document.getElementById('history-list');
+    if(!hist.length){el.innerHTML='<div class="empty">暂无触发记录</div>';return;}
+    el.innerHTML=hist.map(h=>`<div class="hist-item">
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-size:12px;font-weight:600;color:#22d46a">${h.coin}/USDT ${h.condition==='above'?'📈':'📉'}</span>
+        <span style="font-size:10px;color:#1a2a45">${h.time}</span>
+      </div>
+      <div style="font-size:11px;color:#4a6890;margin-top:3px">${h.condition==='above'?'高于':'低于'} $${fmt(h.target)} · 触发价 $${fmt(h.price)}</div>
+    </div>`).join('');
+  } catch(e){}
+}
+
+initCoins();
+loadPrices();
+loadAlerts();
+setInterval(loadPrices, 30000);
 </script>
 </body>
 </html>
