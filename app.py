@@ -399,7 +399,8 @@ RSI(1H)={data.get('rsi_1h','-')} RSI(4H)={data.get('rsi_4h','-')} MACD={data.get
     lines = []
     lines.append(f"【综合判断】{scores.get('signal_text','--')}（信号分{scores.get('signal','--')}/100）{scores.get('signal_reason','')}")
     tf = data.get('timeframe_trends', [])
-    if tf: lines.append(f"【多周期趋势】{' | '.join([f\"{t['label']}{t['trend']}\" for t in tf])}")
+   if tf: lines.append('【多周期趋势】' + ' | '.join([t['label']+t['trend'] for t in tf]))
+
     lines.append(f"【成交量】{data.get('volume_signal','')} {data.get('volume_signal_detail','')}")
     sr = data.get('resistance', []); ss = data.get('support', [])
     lines.append(f"【关键价位】压力：{'、'.join([f\"${r['price']:,.4f}\" for r in sr[:2]]) if sr else '暂无'} | 支撑：{'、'.join([f\"${s['price']:,.4f}\" for s in ss[:2]]) if ss else '暂无'}")
