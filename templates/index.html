@@ -377,8 +377,6 @@ function updateAll(d) {
   }
   document.getElementById('rsi-4h').textContent = d.rsi_4h ? d.rsi_4h.toFixed(1) : '--';
   document.getElementById('rsi-1d').textContent = d.rsi_1d ? d.rsi_1d.toFixed(1) : '--';
-</script>
-<script>
   [['ma5','ma5_1h'],['ma20','ma20_1h'],['ma50','ma50_1h'],['ema20','ema20_1h']].forEach(([id,key])=>{
     const v=d[key]; const el=document.getElementById(id);
     if(el){el.textContent=v?'$'+fmt(v):'--'; el.className='ind-v '+(v&&price>v?'bull':v?'bear':'');}
