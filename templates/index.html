@@ -12,7 +12,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;backg
 .header .sub{font-size:10px;color:#304060;margin-top:2px;}
 .coin-scroll{display:flex;gap:8px;padding:10px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .coin-scroll::-webkit-scrollbar{display:none;}
-.coin-btn{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid #1a2a45;color:#4a6890;background:#0a1220;white-space:nowrap;transition:all .2s;}
+.coin-btn{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid #1a2a45;color:#4a6890;background:#0a1220;white-space:nowrap;}
 .coin-btn.active{background:#1a3060;color:#4a9eff;border-color:#3a6adf;}
 .price-card{margin:0 12px 10px;background:linear-gradient(135deg,#0c1830,#08101e);border:1px solid #1a2a45;border-radius:16px;padding:14px;}
 .price-top{display:flex;justify-content:space-between;align-items:flex-start;}
@@ -22,14 +22,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;backg
 .change.up{color:#22d46a;}.change.down{color:#e04a4a;}
 .price-right{text-align:right;font-size:11px;color:#4a6890;line-height:1.8;}
 .price-right span{color:#8ab0d0;}
-.signal-card{margin:0 12px 10px;border-radius:16px;padding:14px;border:2px solid;}
+.signal-card{margin:0 12px 10px;border-radius:16px;padding:14px;border:2px solid #d4a022;background:#0e100a;}
 .signal-card.bull{background:#061a10;border-color:#22d46a;}
 .signal-card.bear{background:#1a0608;border-color:#e04a4a;}
 .signal-card.neutral{background:#0e100a;border-color:#d4a022;}
 .signal-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
-.signal-text{font-size:18px;font-weight:800;}
+.signal-text{font-size:18px;font-weight:800;color:#d4a022;}
 .signal-text.bull{color:#22d46a;}.signal-text.bear{color:#e04a4a;}.signal-text.neutral{color:#d4a022;}
-.signal-score{font-size:28px;font-weight:900;}
+.signal-score{font-size:28px;font-weight:900;color:#d4a022;}
 .signal-score.bull{color:#22d46a;}.signal-score.bear{color:#e04a4a;}.signal-score.neutral{color:#d4a022;}
 .score-bars{display:flex;flex-direction:column;gap:8px;}
 .score-row{display:flex;align-items:center;gap:8px;}
@@ -37,7 +37,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;backg
 .score-bar-bg{flex:1;height:8px;background:#0a1220;border-radius:4px;overflow:hidden;}
 .score-bar-fill{height:100%;border-radius:4px;transition:width .8s;}
 .score-num{font-size:12px;font-weight:700;width:28px;text-align:right;flex-shrink:0;}
-.analyze-btn{width:calc(100% - 24px);margin:0 12px 10px;background:linear-gradient(135deg,#2a5adf,#1a3aaf);border:none;color:#fff;padding:13px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;}
+.analyze-btn{width:calc(100% - 24px);margin:0 12px 10px;background:linear-gradient(135deg,#2a5adf,#1a3aaf);border:none;color:#fff;padding:13px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;display:block;}
 .analyze-btn.loading{background:#1a2a45;color:#304060;}
 .nav-tabs{display:flex;padding:0 12px;gap:6px;margin-bottom:8px;overflow-x:auto;}
 .nav-tabs::-webkit-scrollbar{display:none;}
@@ -68,7 +68,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;backg
 .level-type.sup{color:#22d46a;}
 .range-vis{background:#060a14;border-radius:10px;padding:12px;margin-bottom:8px;}
 .range-bar{position:relative;height:24px;background:#0a1220;border-radius:12px;margin:10px 0;}
-.range-fill{position:absolute;top:0;height:100%;border-radius:12px;background:linear-gradient(90deg,#22d46a22,#4a9eff22,#e04a4a22);}
+.range-fill{position:absolute;top:0;height:100%;border-radius:12px;background:linear-gradient(90deg,#22d46a22,#4a9eff22,#e04a4a22);left:0;width:100%;}
 .range-cur{position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:#4a9eff;border:2px solid #fff;}
 .range-labels{display:flex;justify-content:space-between;font-size:10px;color:#4a6890;}
 .tp-sl-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
@@ -78,7 +78,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;backg
 .tp-sl-pct{font-size:10px;margin-top:2px;}
 .tp-color{color:#22d46a;}.sl-color{color:#e04a4a;}
 .report-box{background:#060a14;border:1px solid #152040;border-radius:12px;padding:14px;white-space:pre-wrap;font-size:12px;line-height:1.9;color:#90b0d0;}
-.placeholder{color:#1a2a45;text-align:center;padding:30px 0;}
+.placeholder{color:#304060;text-align:center;padding:30px 0;}
 .add-form{background:#0a1220;border:1px solid #152040;border-radius:14px;padding:12px;margin-bottom:10px;}
 .form-row{display:flex;gap:6px;margin-bottom:8px;}
 select,input{background:#060a14;border:1px solid #152040;color:#c0d4f0;border-radius:8px;padding:9px 10px;font-size:13px;outline:none;width:100%;}
@@ -130,7 +130,7 @@ select{flex:1;}input{flex:2;}
     <div class="score-row"><div class="score-label">趋势</div><div class="score-bar-bg"><div class="score-bar-fill" id="bar-trend" style="width:0%;background:#4a9eff;"></div></div><div class="score-num" id="num-trend" style="color:#4a9eff">--</div></div>
     <div class="score-row"><div class="score-label">动能</div><div class="score-bar-bg"><div class="score-bar-fill" id="bar-momentum" style="width:0%;background:#9a6aff;"></div></div><div class="score-num" id="num-momentum" style="color:#9a6aff">--</div></div>
     <div class="score-row"><div class="score-label">量能</div><div class="score-bar-bg"><div class="score-bar-fill" id="bar-volume" style="width:0%;background:#22d46a;"></div></div><div class="score-num" id="num-volume" style="color:#22d46a">--</div></div>
-    <div class="score-row"><div class="score-label">风险⚠️</div><div class="score-bar-bg"><div class="score-bar-fill" id="bar-risk" style="width:0%;background:#e04a4a;"></div></div><div class="score-num" id="num-risk" style="color:#e04a4a">--</div></div>
+    <div class="score-row"><div class="score-label">风险</div><div class="score-bar-bg"><div class="score-bar-fill" id="bar-risk" style="width:0%;background:#e04a4a;"></div></div><div class="score-num" id="num-risk" style="color:#e04a4a">--</div></div>
   </div>
   <div id="signal-reason" style="font-size:11px;color:#4a6890;margin-top:10px;"></div>
 </div>
@@ -200,7 +200,7 @@ select{flex:1;}input{flex:2;}
     <div class="card-title">短线预测区间</div>
     <div class="range-vis">
       <div class="range-labels"><span id="range-low">--</span><span style="color:#4a9eff">当前价</span><span id="range-high">--</span></div>
-      <div class="range-bar"><div class="range-fill" style="left:0;width:100%;"></div><div class="range-cur" id="range-dot" style="left:50%;"></div></div>
+      <div class="range-bar"><div class="range-fill"></div><div class="range-cur" id="range-dot" style="left:50%;"></div></div>
       <div style="text-align:center;font-size:10px;color:#4a6890;" id="range-basis">待分析</div>
     </div>
   </div>
@@ -239,7 +239,7 @@ select{flex:1;}input{flex:2;}
     <div class="card-title" style="margin-bottom:8px">添加价格提醒</div>
     <div class="form-row">
       <select id="sel-coin"></select>
-      <select id="sel-cond"><option value="above">高于 ↑</option><option value="below">低于 ↓</option></select>
+      <select id="sel-cond"><option value="above">高于</option><option value="below">低于</option></select>
       <input id="inp-price" type="number" placeholder="目标价格"/>
     </div>
     <button class="btn-add" onclick="addAlert()">+ 添加提醒</button>
@@ -250,229 +250,227 @@ select{flex:1;}input{flex:2;}
   <div id="history-list"><div class="empty">暂无触发记录</div></div>
 </div>
 <script>
-const COINS = ['BTC','ETH','DOGE','BCH','ZEC'];
-let currentCoin = 'BTC';
-
-function initCoins() {
-  const scroll = document.getElementById('coin-scroll');
-  const sel = document.getElementById('sel-coin');
-  COINS.forEach(c => {
-    const btn = document.createElement('div');
-    btn.className = 'coin-btn' + (c==='BTC'?' active':'');
-    btn.textContent = c + '/USDT';
-    btn.onclick = () => switchCoin(c);
+var COINS=['BTC','ETH','DOGE','BCH','ZEC'];
+var currentCoin='BTC';
+function initCoins(){
+  var scroll=document.getElementById('coin-scroll');
+  var sel=document.getElementById('sel-coin');
+  for(var i=0;i<COINS.length;i++){
+    var c=COINS[i];
+    var btn=document.createElement('div');
+    btn.className='coin-btn'+(c==='BTC'?' active':'');
+    btn.textContent=c+'/USDT';
+    btn.setAttribute('data-coin',c);
+    btn.onclick=(function(coin){return function(){switchCoin(coin);};})(c);
     scroll.appendChild(btn);
-    const opt = document.createElement('option');
-    opt.value = c; opt.textContent = c;
+    var opt=document.createElement('option');
+    opt.value=c;opt.textContent=c;
     sel.appendChild(opt);
-  });
+  }
 }
-
-function fmt(n, dec) {
-  if(n===null||n===undefined||n==='') return '--';
-  n = parseFloat(n);
-  if(isNaN(n)) return '--';
-  if(dec !== undefined) return n.toFixed(dec);
-  if(Math.abs(n) >= 10000) return n.toLocaleString('en-US',{maximumFractionDigits:0});
-  if(Math.abs(n) >= 100) return n.toFixed(2);
-  if(Math.abs(n) >= 1) return n.toFixed(4);
+function fmt(n,dec){
+  if(n===null||n===undefined||n==='')return'--';
+  n=parseFloat(n);if(isNaN(n))return'--';
+  if(dec!==undefined)return n.toFixed(dec);
+  if(Math.abs(n)>=10000)return n.toLocaleString('en-US',{maximumFractionDigits:0});
+  if(Math.abs(n)>=100)return n.toFixed(2);
+  if(Math.abs(n)>=1)return n.toFixed(4);
   return n.toFixed(6);
 }
-
-function switchCoin(coin) {
-  currentCoin = coin;
-  document.querySelectorAll('.coin-btn').forEach((b,i) => b.classList.toggle('active', COINS[i]===coin));
-  document.getElementById('coin-label').textContent = coin + '/USDT';
-  document.getElementById('main-price').textContent = '--';
-  document.getElementById('report-box').innerHTML = '<div class="placeholder">点击「立即分析」获取报告</div>';
+function switchCoin(coin){
+  currentCoin=coin;
+  var btns=document.querySelectorAll('.coin-btn');
+  for(var i=0;i<btns.length;i++)btns[i].classList.toggle('active',COINS[i]===coin);
+  document.getElementById('coin-label').textContent=coin+'/USDT';
+  document.getElementById('main-price').textContent='--';
+  document.getElementById('report-box').innerHTML='<div class="placeholder">点击「立即分析」获取报告</div>';
   loadPrices();
 }
-
-function switchTab(name) {
-  const tabs = ['report','trends','indicators','levels','tpsl','alerts','history'];
-  document.querySelectorAll('.nav-tab').forEach((t,i) => t.classList.toggle('active', tabs[i]===name));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+function switchTab(name){
+  var tabs=['report','trends','indicators','levels','tpsl','alerts','history'];
+  var navTabs=document.querySelectorAll('.nav-tab');
+  var tabContents=document.querySelectorAll('.tab-content');
+  for(var i=0;i<navTabs.length;i++)navTabs[i].classList.toggle('active',tabs[i]===name);
+  for(var j=0;j<tabContents.length;j++)tabContents[j].classList.remove('active');
   document.getElementById('tab-'+name).classList.add('active');
-  if(name==='alerts') loadAlerts();
-  if(name==='history') loadHistory();
+  if(name==='alerts')loadAlerts();
+  if(name==='history')loadHistory();
 }
-
-async function loadPrices() {
-  try {
-    const r = await fetch('/api/prices');
-    const d = await r.json();
-    const p = d[currentCoin];
-    if(p) document.getElementById('main-price').textContent = '$' + fmt(p);
-    if(d.last_update) document.getElementById('update-bar').textContent = '价格更新：' + d.last_update;
-  } catch(e) {}
+function loadPrices(){
+  fetch('/api/prices').then(function(r){return r.json();}).then(function(d){
+    var p=d[currentCoin];
+    if(p)document.getElementById('main-price').textContent='$'+fmt(p);
+    if(d.last_update)document.getElementById('update-bar').textContent='价格更新：'+d.last_update;
+  }).catch(function(){});
 }
-
-async function doAnalyze() {
-  const btn = document.getElementById('analyze-btn');
-  btn.textContent = '⏳ 分析中，约15-30秒...';
-  btn.classList.add('loading'); btn.disabled = true;
-  document.getElementById('report-box').innerHTML = '<div class="placeholder">⏳ 正在计算指标并生成报告...</div>';
-  try {
-    const r = await fetch('/api/report/' + currentCoin);
-    const d = await r.json();
-    if(d.error) throw new Error(d.error);
+function doAnalyze(){
+  var btn=document.getElementById('analyze-btn');
+  btn.textContent='⏳ 分析中，约15-30秒...';
+  btn.classList.add('loading');btn.disabled=true;
+  document.getElementById('report-box').innerHTML='<div class="placeholder">⏳ 正在计算指标并生成报告...</div>';
+  fetch('/api/report/'+currentCoin).then(function(r){return r.json();}).then(function(d){
+    if(d.error)throw new Error(d.error);
     updateAll(d);
-  } catch(e) {
-    document.getElementById('report-box').innerHTML = '<div class="placeholder">❌ 分析失败，请重试</div>';
-  }
-  btn.textContent = '📊 立即分析 + 发送Telegram';
-  btn.classList.remove('loading'); btn.disabled = false;
-}
-
-function updateAll(d) {
-  const price = d.price || 0;
-  const sc = d.scores || {};
-  const tp = d.tp_sl || {};
-  const pr = d.predicted_range || {};
-  document.getElementById('main-price').textContent = '$' + fmt(price);
-  const ch = d.change_24h || 0;
-  const chEl = document.getElementById('main-change');
-  chEl.textContent = (ch>=0?'+':'') + ch.toFixed(2) + '% (24H)';
-  chEl.className = 'change ' + (ch>=0?'up':'down');
-  document.getElementById('stat-high').textContent = '$' + fmt(d.high_24h);
-  document.getElementById('stat-low').textContent = '$' + fmt(d.low_24h);
-  document.getElementById('stat-vol').textContent = fmt(d.quote_volume_24h, 1);
-  document.getElementById('update-bar').textContent = '分析时间：' + (d.updated_at||'');
-  const sigCls = sc.signal_class || 'neutral';
-  document.getElementById('signal-card').className = 'signal-card ' + sigCls;
-  const stEl = document.getElementById('signal-text');
-  stEl.textContent = sc.signal_text || '--';
-  stEl.className = 'signal-text ' + sigCls;
-  const ssEl = document.getElementById('signal-score');
-  ssEl.textContent = sc.signal || '--';
-  ssEl.className = 'signal-score ' + sigCls;
-  document.getElementById('signal-reason').textContent = sc.signal_reason || '';
-  [['trend','#4a9eff'],['momentum','#9a6aff'],['volume','#22d46a'],['risk','#e04a4a']].forEach(([k,c]) => {
-    const v = sc[k] || 0;
-    document.getElementById('bar-'+k).style.width = v + '%';
-    document.getElementById('bar-'+k).style.background = c;
-    document.getElementById('num-'+k).textContent = v;
+  }).catch(function(){
+    document.getElementById('report-box').innerHTML='<div class="placeholder">❌ 分析失败，请重试</div>';
+  }).finally(function(){
+    btn.textContent='📊 立即分析 + 发送Telegram';
+    btn.classList.remove('loading');btn.disabled=false;
   });
-  document.getElementById('report-box').textContent = d.report || '报告生成失败';
-  const tfs = d.timeframe_trends || [];
-  if(tfs.length) {
-    document.getElementById('tf-grid').innerHTML = tfs.map(t => {
-      const cls = t.trend.includes('上涨')?'#22d46a':t.trend.includes('下跌')?'#e04a4a':'#d4a022';
-      return `<div class="tf-item">
-        <div class="tf-label">${t.label}</div>
-        <div class="tf-trend" style="color:${cls}">${t.trend}</div>
-        <div class="tf-score">${t.score||'--'}/100</div>
-        <div class="tf-bar" style="width:${t.score||50}%;background:${cls}"></div>
-      </div>`;
-    }).join('');
-  }
-  document.getElementById('vol-signal').textContent = d.volume_signal || '--';
-  document.getElementById('vol-detail').textContent = d.volume_signal_detail || '--';
-  const rsi = d.rsi_1h;
-  document.getElementById('rsi-1h').textContent = rsi ? rsi.toFixed(1) : '--';
-  document.getElementById('rsi-1h').className = 'ind-v ' + (rsi>70?'bear':rsi<30?'bull':'neutral');
-  if(rsi) {
-    document.getElementById('rsi-bar').style.width = rsi + '%';
-    document.getElementById('rsi-bar').style.background = rsi>70?'#e04a4a':rsi<30?'#22d46a':'#d4a022';
-  }
-  document.getElementById('rsi-4h').textContent = d.rsi_4h ? d.rsi_4h.toFixed(1) : '--';
-  document.getElementById('rsi-1d').textContent = d.rsi_1d ? d.rsi_1d.toFixed(1) : '--';
-  [['ma5','ma5_1h'],['ma20','ma20_1h'],['ma50','ma50_1h'],['ema20','ema20_1h']].forEach(([id,key])=>{
-    const v=d[key]; const el=document.getElementById(id);
-    if(el){el.textContent=v?'$'+fmt(v):'--'; el.className='ind-v '+(v&&price>v?'bull':v?'bear':'');}
-  });
-  document.getElementById('macd').textContent = d.macd_1h ? fmt(d.macd_1h,4) : '--';
-  document.getElementById('macd').className = 'ind-v ' + (d.macd_1h>0?'bull':'bear');
-  document.getElementById('macd-sig').textContent = d.macd_signal_1h ? fmt(d.macd_signal_1h,4) : '--';
-  document.getElementById('bb-upper').textContent = d.bb_upper_1h ? '$'+fmt(d.bb_upper_1h) : '--';
-  document.getElementById('bb-lower').textContent = d.bb_lower_1h ? '$'+fmt(d.bb_lower_1h) : '--';
-  document.getElementById('atr').textContent = d.atr_1h ? '$'+fmt(d.atr_1h) : '--';
-  const vr = d.vol_ratio_1h;
-  document.getElementById('vol-ratio').textContent = vr ? vr.toFixed(2)+'x' : '--';
-  document.getElementById('vol-ratio').className = 'ind-v '+(vr>1.5?'bull':vr<0.7?'bear':'neutral');
-  const res = d.resistance || [];
-  const sup = d.support || [];
-  document.getElementById('res-list').innerHTML = res.length ?
-    res.map(r=>`<div class="level-item"><div class="level-left"><div class="level-label">${r.label||'压力位'}</div><div class="level-price">$${fmt(r.price)}</div></div><div class="level-right"><div class="level-type res">▼ 压力</div><div class="level-dist">${r.dist>0?'+':''}${r.dist}%</div></div></div>`).join('') :
-    '<div class="empty">暂无明显压力位</div>';
-  document.getElementById('sup-list').innerHTML = sup.length ?
-    sup.map(s=>`<div class="level-item"><div class="level-left"><div class="level-label">${s.label||'支撑位'}</div><div class="level-price">$${fmt(s.price)}</div></div><div class="level-right"><div class="level-type sup">▲ 支撑</div><div class="level-dist">${s.dist}%</div></div></div>`).join('') :
-    '<div class="empty">暂无明显支撑位</div>';
-  if(pr.low && pr.high) {
-    document.getElementById('range-low').textContent = '$'+fmt(pr.low);
-    document.getElementById('range-high').textContent = '$'+fmt(pr.high);
-    document.getElementById('range-basis').textContent = pr.basis || '';
-    const pct = (price-pr.low)/(pr.high-pr.low)*100;
-    document.getElementById('range-dot').style.left = Math.max(5,Math.min(95,pct))+'%';
-  }
-  document.getElementById('intraday-high').textContent = d.intraday_high?'$'+fmt(d.intraday_high):'--';
-  document.getElementById('intraday-low').textContent = d.intraday_low?'$'+fmt(d.intraday_low):'--';
-  document.getElementById('week-high').textContent = d.week_high?'$'+fmt(d.week_high):'--';
-  document.getElementById('week-low').textContent = d.week_low?'$'+fmt(d.week_low):'--';
-  document.getElementById('sl-price').textContent = '$'+fmt(tp.stop_loss);
-  document.getElementById('sl-pct').textContent = '-'+(tp.sl_pct||0).toFixed(2)+'%';
-  document.getElementById('tp1-price').textContent = '$'+fmt(tp.take_profit_1);
-  document.getElementById('tp1-pct').textContent = '+'+(tp.tp1_pct||0).toFixed(2)+'%';
-  document.getElementById('tp2-price').textContent = '$'+fmt(tp.take_profit_2);
-  document.getElementById('tp2-pct').textContent = '+'+(tp.tp2_pct||0).toFixed(2)+'%';
-  document.getElementById('rr').textContent = (tp.risk_reward||0).toFixed(2)+':1';
-  const rlEl = document.getElementById('risk-level');
-  rlEl.textContent = tp.risk_level||'--';
-  rlEl.className = 'ind-v '+(tp.risk_level==='高'?'bear':tp.risk_level==='低'?'bull':'neutral');
-  document.getElementById('score-reasons').innerHTML = [
-    `📈 趋势分 ${sc.trend||'--'}/100：${sc.trend_reason||''}`,
-    `⚡ 动能分 ${sc.momentum||'--'}/100：${sc.momentum_reason||''}`,
-    `📊 量能分 ${sc.volume||'--'}/100：${sc.volume_reason||''}`,
-    `⚠️ 风险分 ${sc.risk||'--'}/100：${sc.risk_reason||''}`,
-    `🎯 信号分 ${sc.signal||'--'}/100：${sc.signal_reason||''}`,
-  ].join('<br><br>');
 }
-
-async function loadAlerts() {
-  try {
-    const r=await fetch('/api/alerts'); const alerts=await r.json();
-    const el=document.getElementById('alert-list');
+function updateAll(d){
+  var price=d.price||0;
+  var sc=d.scores||{};
+  var tp=d.tp_sl||{};
+  var pr=d.predicted_range||{};
+  document.getElementById('main-price').textContent='$'+fmt(price);
+  var ch=d.change_24h||0;
+  var chEl=document.getElementById('main-change');
+  chEl.textContent=(ch>=0?'+':'')+ch.toFixed(2)+'% (24H)';
+  chEl.className='change '+(ch>=0?'up':'down');
+  document.getElementById('stat-high').textContent='$'+fmt(d.high_24h);
+  document.getElementById('stat-low').textContent='$'+fmt(d.low_24h);
+  document.getElementById('stat-vol').textContent=fmt(d.quote_volume_24h,1);
+  document.getElementById('update-bar').textContent='分析时间：'+(d.updated_at||'');
+  var sigCls=sc.signal_class||'neutral';
+  document.getElementById('signal-card').className='signal-card '+sigCls;
+  var stEl=document.getElementById('signal-text');
+  stEl.textContent=sc.signal_text||'--';stEl.className='signal-text '+sigCls;
+  var ssEl=document.getElementById('signal-score');
+  ssEl.textContent=sc.signal||'--';ssEl.className='signal-score '+sigCls;
+  document.getElementById('signal-reason').textContent=sc.signal_reason||'';
+  var sk=[['trend','#4a9eff'],['momentum','#9a6aff'],['volume','#22d46a'],['risk','#e04a4a']];
+  for(var i=0;i<sk.length;i++){
+    var k=sk[i][0],c=sk[i][1],v=sc[k]||0;
+    document.getElementById('bar-'+k).style.width=v+'%';
+    document.getElementById('bar-'+k).style.background=c;
+    document.getElementById('num-'+k).textContent=v;
+  }
+  document.getElementById('report-box').textContent=d.report||'报告生成失败';
+  var tfs=d.timeframe_trends||[];
+  if(tfs.length){
+    var tfHtml='';
+    for(var t=0;t<tfs.length;t++){
+      var tf=tfs[t];
+      var cls=tf.trend.indexOf('上涨')>=0?'#22d46a':tf.trend.indexOf('下跌')>=0?'#e04a4a':'#d4a022';
+      tfHtml+='<div class="tf-item"><div class="tf-label">'+tf.label+'</div>';
+      tfHtml+='<div class="tf-trend" style="color:'+cls+'">'+tf.trend+'</div>';
+      tfHtml+='<div class="tf-score">'+(tf.score||'--')+'/100</div>';
+      tfHtml+='<div class="tf-bar" style="width:'+(tf.score||50)+'%;background:'+cls+'"></div></div>';
+    }
+    document.getElementById('tf-grid').innerHTML=tfHtml;
+  }
+  document.getElementById('vol-signal').textContent=d.volume_signal||'--';
+  document.getElementById('vol-detail').textContent=d.volume_signal_detail||'--';
+  var rsi=d.rsi_1h;
+  document.getElementById('rsi-1h').textContent=rsi?rsi.toFixed(1):'--';
+  document.getElementById('rsi-1h').className='ind-v '+(rsi>70?'bear':rsi<30?'bull':'neutral');
+  if(rsi){document.getElementById('rsi-bar').style.width=rsi+'%';document.getElementById('rsi-bar').style.background=rsi>70?'#e04a4a':rsi<30?'#22d46a':'#d4a022';}
+  document.getElementById('rsi-4h').textContent=d.rsi_4h?d.rsi_4h.toFixed(1):'--';
+  document.getElementById('rsi-1d').textContent=d.rsi_1d?d.rsi_1d.toFixed(1):'--';
+  var mf=[['ma5','ma5_1h'],['ma20','ma20_1h'],['ma50','ma50_1h'],['ema20','ema20_1h']];
+  for(var m=0;m<mf.length;m++){
+    var id=mf[m][0],key=mf[m][1],val=d[key],el=document.getElementById(id);
+    if(el){el.textContent=val?'$'+fmt(val):'--';el.className='ind-v '+(val&&price>val?'bull':val?'bear':'');}
+  }
+  document.getElementById('macd').textContent=d.macd_1h?fmt(d.macd_1h,4):'--';
+  document.getElementById('macd').className='ind-v '+(d.macd_1h>0?'bull':'bear');
+  document.getElementById('macd-sig').textContent=d.macd_signal_1h?fmt(d.macd_signal_1h,4):'--';
+  document.getElementById('bb-upper').textContent=d.bb_upper_1h?'$'+fmt(d.bb_upper_1h):'--';
+  document.getElementById('bb-lower').textContent=d.bb_lower_1h?'$'+fmt(d.bb_lower_1h):'--';
+  document.getElementById('atr').textContent=d.atr_1h?'$'+fmt(d.atr_1h):'--';
+  var vr=d.vol_ratio_1h;
+  document.getElementById('vol-ratio').textContent=vr?vr.toFixed(2)+'x':'--';
+  document.getElementById('vol-ratio').className='ind-v '+(vr>1.5?'bull':vr<0.7?'bear':'neutral');
+  var res=d.resistance||[],sup=d.support||[],resHtml='',supHtml='';
+  for(var r=0;r<res.length;r++){
+    resHtml+='<div class="level-item"><div class="level-left"><div class="level-label">'+(res[r].label||'压力位')+'</div>';
+    resHtml+='<div class="level-price">$'+fmt(res[r].price)+'</div></div>';
+    resHtml+='<div class="level-right"><div class="level-type res">▼ 压力</div>';
+    resHtml+='<div class="level-dist">'+(res[r].dist>0?'+':'')+res[r].dist+'%</div></div></div>';
+  }
+  document.getElementById('res-list').innerHTML=resHtml||'<div class="empty">暂无明显压力位</div>';
+  for(var s=0;s<sup.length;s++){
+    supHtml+='<div class="level-item"><div class="level-left"><div class="level-label">'+(sup[s].label||'支撑位')+'</div>';
+    supHtml+='<div class="level-price">$'+fmt(sup[s].price)+'</div></div>';
+    supHtml+='<div class="level-right"><div class="level-type sup">▲ 支撑</div>';
+    supHtml+='<div class="level-dist">'+sup[s].dist+'%</div></div></div>';
+  }
+  document.getElementById('sup-list').innerHTML=supHtml||'<div class="empty">暂无明显支撑位</div>';
+  if(pr.low&&pr.high){
+    document.getElementById('range-low').textContent='$'+fmt(pr.low);
+    document.getElementById('range-high').textContent='$'+fmt(pr.high);
+    document.getElementById('range-basis').textContent=pr.basis||'';
+    var pct=(price-pr.low)/(pr.high-pr.low)*100;
+    document.getElementById('range-dot').style.left=Math.max(5,Math.min(95,pct))+'%';
+  }
+  document.getElementById('intraday-high').textContent=d.intraday_high?'$'+fmt(d.intraday_high):'--';
+  document.getElementById('intraday-low').textContent=d.intraday_low?'$'+fmt(d.intraday_low):'--';
+  document.getElementById('week-high').textContent=d.week_high?'$'+fmt(d.week_high):'--';
+  document.getElementById('week-low').textContent=d.week_low?'$'+fmt(d.week_low):'--';
+  document.getElementById('sl-price').textContent='$'+fmt(tp.stop_loss);
+  document.getElementById('sl-pct').textContent='-'+(tp.sl_pct||0).toFixed(2)+'%';
+  document.getElementById('tp1-price').textContent='$'+fmt(tp.take_profit_1);
+  document.getElementById('tp1-pct').textContent='+'+(tp.tp1_pct||0).toFixed(2)+'%';
+  document.getElementById('tp2-price').textContent='$'+fmt(tp.take_profit_2);
+  document.getElementById('tp2-pct').textContent='+'+(tp.tp2_pct||0).toFixed(2)+'%';
+  document.getElementById('rr').textContent=(tp.risk_reward||0).toFixed(2)+':1';
+  var rlEl=document.getElementById('risk-level');
+  rlEl.textContent=tp.risk_level||'--';
+  rlEl.className='ind-v '+(tp.risk_level==='高'?'bear':tp.risk_level==='低'?'bull':'neutral');
+  document.getElementById('score-reasons').innerHTML=
+    '📈 趋势分 '+(sc.trend||'--')+'/100：'+(sc.trend_reason||'')+'<br><br>'+
+    '⚡ 动能分 '+(sc.momentum||'--')+'/100：'+(sc.momentum_reason||'')+'<br><br>'+
+    '📊 量能分 '+(sc.volume||'--')+'/100：'+(sc.volume_reason||'')+'<br><br>'+
+    '⚠️ 风险分 '+(sc.risk||'--')+'/100：'+(sc.risk_reason||'')+'<br><br>'+
+    '🎯 信号分 '+(sc.signal||'--')+'/100：'+(sc.signal_reason||'');
+}
+function loadAlerts(){
+  fetch('/api/alerts').then(function(r){return r.json();}).then(function(alerts){
+    var el=document.getElementById('alert-list');
     if(!alerts.length){el.innerHTML='<div class="empty">暂无提醒</div>';return;}
-    el.innerHTML=alerts.map(a=>`<div class="alert-item">
-      <div><div style="font-size:12px;font-weight:700;color:#4a9eff">${a.coin}/USDT</div>
-      <div style="font-size:11px;color:#4a6890;margin-top:2px">${a.condition==='above'?'📈 高于':'📉 低于'} $${fmt(a.price)}</div></div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <span class="badge ${a.triggered?'badge-done':'badge-wait'}">${a.triggered?'✅已触发':'⏳等待中'}</span>
-        <button class="btn-del" onclick="delAlert(${a.id})">删除</button>
-      </div></div>`).join('');
-  } catch(e){}
+    var html='';
+    for(var i=0;i<alerts.length;i++){
+      var a=alerts[i];
+      html+='<div class="alert-item"><div>';
+      html+='<div style="font-size:12px;font-weight:700;color:#4a9eff">'+a.coin+'/USDT</div>';
+      html+='<div style="font-size:11px;color:#4a6890;margin-top:2px">'+(a.condition==='above'?'📈 高于':'📉 低于')+' $'+fmt(a.price)+'</div>';
+      html+='</div><div style="display:flex;align-items:center;gap:6px">';
+      html+='<span class="badge '+(a.triggered?'badge-done':'badge-wait')+'">'+(a.triggered?'✅已触发':'⏳等待中')+'</span>';
+      html+='<button class="btn-del" onclick="delAlert('+a.id+')">删除</button>';
+      html+='</div></div>';
+    }
+    el.innerHTML=html;
+  }).catch(function(){});
 }
-
-async function addAlert() {
-  const coin=document.getElementById('sel-coin').value;
-  const condition=document.getElementById('sel-cond').value;
-  const price=document.getElementById('inp-price').value;
+function addAlert(){
+  var coin=document.getElementById('sel-coin').value;
+  var condition=document.getElementById('sel-cond').value;
+  var price=document.getElementById('inp-price').value;
   if(!price){alert('请输入目标价格');return;}
-  await fetch('/api/alerts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({coin,condition,price})});
-  document.getElementById('inp-price').value=''; loadAlerts();
+  fetch('/api/alerts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({coin:coin,condition:condition,price:price})}).then(function(){
+    document.getElementById('inp-price').value='';loadAlerts();
+  });
 }
-
-async function delAlert(id){await fetch('/api/alerts/'+id,{method:'DELETE'});loadAlerts();}
-
-async function loadHistory() {
-  try {
-    const r=await fetch('/api/history'); const hist=await r.json();
-    const el=document.getElementById('history-list');
+function delAlert(id){fetch('/api/alerts/'+id,{method:'DELETE'}).then(function(){loadAlerts();});}
+function loadHistory(){
+  fetch('/api/history').then(function(r){return r.json();}).then(function(hist){
+    var el=document.getElementById('history-list');
     if(!hist.length){el.innerHTML='<div class="empty">暂无触发记录</div>';return;}
-    el.innerHTML=hist.map(h=>`<div class="hist-item">
-      <div style="display:flex;justify-content:space-between">
-        <span style="font-size:12px;font-weight:600;color:#22d46a">${h.coin}/USDT ${h.condition==='above'?'📈':'📉'}</span>
-        <span style="font-size:10px;color:#1a2a45">${h.time}</span>
-      </div>
-      <div style="font-size:11px;color:#4a6890;margin-top:3px">${h.condition==='above'?'高于':'低于'} $${fmt(h.target)} · 触发价 $${fmt(h.price)}</div>
-    </div>`).join('');
-  } catch(e){}
+    var html='';
+    for(var i=0;i<hist.length;i++){
+      var h=hist[i];
+      html+='<div class="hist-item">';
+      html+='<div style="display:flex;justify-content:space-between">';
+      html+='<span style="font-size:12px;font-weight:600;color:#22d46a">'+h.coin+'/USDT '+(h.condition==='above'?'📈':'📉')+'</span>';
+      html+='<span style="font-size:10px;color:#1a2a45">'+h.time+'</span></div>';
+      html+='<div style="font-size:11px;color:#4a6890;margin-top:3px">'+(h.condition==='above'?'高于':'低于')+' $'+fmt(h.target)+' · 触发价 $'+fmt(h.price)+'</div>';
+      html+='</div>';
+    }
+    el.innerHTML=html;
+  }).catch(function(){});
 }
-
-initCoins();
-loadPrices();
-loadAlerts();
-setInterval(loadPrices, 30000);
+initCoins();loadPrices();loadAlerts();setInterval(loadPrices,30000);
 </script>
 </body>
 </html>
