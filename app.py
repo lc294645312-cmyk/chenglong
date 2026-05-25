@@ -24,8 +24,6 @@ COIN_CONFIG = {
     'ZEC':  {'symbol': 'ZECUSDT',  'cg_id': 'zcash',        'name': 'Zcash'},
 }
 
-# ─── 工具 ────────────────────────────────────────────────────
-
 def load_json(f, d):
     try:
         if os.path.exists(f):
@@ -35,8 +33,6 @@ def load_json(f, d):
 
 def save_json(f, d):
     with open(f, 'w') as fp: json.dump(d, fp, ensure_ascii=False, indent=2)
-
-# ─── 数据获取 ────────────────────────────────────────────────
 
 def get_ticker(coin):
     cfg = COIN_CONFIG[coin]
@@ -78,7 +74,6 @@ def get_klines(symbol, interval, limit=200):
                     }
         except: continue
     return None
-# ─── 技术指标 ────────────────────────────────────────────────
 
 def ma(closes, n):
     if len(closes) < n: return None
@@ -137,9 +132,6 @@ def swing_points(highs, lows, window=5):
         if highs[i] == max(highs[i-window:i+window+1]): sh.append(highs[i])
         if lows[i] == min(lows[i-window:i+window+1]): sl.append(lows[i])
     return sh[-5:], sl[-5:]
-
-# ─── 多周期趋势 ──────────────────────────────────────────────
-
 def trend_by_tf(klines, label):
     if not klines: return {'label': label, 'trend': '数据不足', 'score': 50}
     c = klines['closes']
@@ -168,18 +160,14 @@ def trend_by_tf(klines, label):
     else: trend = '震荡 ↔️'
     return {'label': label, 'trend': trend, 'score': score, 'details': details}
 
-# ─── 放量突破识别 ────────────────────────────────────────────
-
 def volume_analysis(klines):
     if not klines: return {}
     vols = klines['volumes']
     closes = klines['closes']
-    highs = klines['highs']
     vr = vol_ratio(vols)
     result = {'vol_ratio': vr}
     if not vr: return result
     price_change = (closes[-1] - closes[-2]) / closes[-2] * 100 if len(closes) >= 2 else 0
-    recent_high = max(highs[-20:]) if len(highs) >= 20 else highs[-1]
     if vr >= 2.0 and price_change > 0.5:
         result['signal'] = '🚀 放量突破'
         result['signal_detail'] = f'成交量是均量{vr:.1f}倍，价格上涨{price_change:.1f}%，突破信号强烈'
@@ -197,20 +185,14 @@ def volume_analysis(klines):
         result['signal_detail'] = f'量比{vr:.1f}x，成交量正常'
     return result
 
-# ─── 支撑压力识别 ────────────────────────────────────────────
-
 def support_resistance(k1h, k4h, k1d, price):
     res, sup = [], []
     labels_res, labels_sup = {}, {}
-
     def add_level(val, is_res, label):
         if is_res and val > price:
-            res.append(val)
-            labels_res[round(val, 8)] = label
+            res.append(val); labels_res[round(val, 8)] = label
         elif not is_res and val < price:
-            sup.append(val)
-            labels_sup[round(val, 8)] = label
-
+            sup.append(val); labels_sup[round(val, 8)] = label
     for klines, tf in [(k1h, '1H'), (k4h, '4H'), (k1d, '1D')]:
         if not klines: continue
         h, l, c = klines['highs'], klines['lows'], klines['closes']
@@ -220,65 +202,44 @@ def support_resistance(k1h, k4h, k1d, price):
         sh, sl = swing_points(h, l)
         for v in sh: add_level(round(v,8), True, f'{tf}摆动高点')
         for v in sl: add_level(round(v,8), False, f'{tf}摆动低点')
-        # MA支撑压力
         for n_ma, name in [(20,'MA20'),(50,'MA50'),(200,'MA200')]:
             v = ma(c, n_ma)
             if v: add_level(v, v > price, f'{tf}{name}')
-
-    # 去重合并相近价位（1.5%以内合并）
     def merge_levels(levels):
         if not levels: return []
         levels = sorted(set(round(l, 6) for l in levels))
         merged = [levels[0]]
         for l in levels[1:]:
-            if abs(l - merged[-1]) / merged[-1] > 0.015:
-                merged.append(l)
+            if abs(l - merged[-1]) / merged[-1] > 0.015: merged.append(l)
         return merged
-
     res_merged = merge_levels(res)[:4]
     sup_merged = merge_levels(sorted(sup, reverse=True))[:4]
-
     return {
         'resistance': [{'price': r, 'label': labels_res.get(round(r,8),'压力位'), 'dist': round((r-price)/price*100,2)} for r in res_merged],
         'support':    [{'price': s, 'label': labels_sup.get(round(s,8),'支撑位'), 'dist': round((s-price)/price*100,2)} for s in sup_merged],
     }
 
-# ─── 短线高低点预测 ──────────────────────────────────────────
-
 def predict_range(k1h, price, atr_val):
     if not k1h or not atr_val:
         return {'high': round(price*1.02,8), 'low': round(price*0.98,8), 'basis': '基于2%估算'}
-    closes = k1h['closes']
     highs = k1h['highs']
     lows = k1h['lows']
-    # 用ATR * 系数预测
     pred_high = round(price + atr_val * 2.5, 8)
     pred_low  = round(price - atr_val * 2.5, 8)
-    # 找最近支撑压力修正
     near_res = [h for h in highs[-48:] if h > price]
     near_sup = [l for l in lows[-48:] if l < price]
     if near_res: pred_high = min(pred_high, round(min(near_res)*1.002, 8))
     if near_sup: pred_low  = max(pred_low,  round(max(near_sup)*0.998, 8))
     rng = round((pred_high - pred_low) / price * 100, 2)
-    return {
-        'high': pred_high,
-        'low':  pred_low,
-        'range_pct': rng,
-        'basis': f'ATR×2.5={round(atr_val*2.5,4)}，预测波动区间{rng}%'
-    }
-
-# ─── 评分系统 ────────────────────────────────────────────────
+    return {'high': pred_high, 'low': pred_low, 'range_pct': rng,
+            'basis': f'ATR×2.5，预测波动区间{rng}%'}
 
 def calc_scores(data, klines_dict):
     price = data.get('price', 0)
     scores = {}
-
-    # 1. Trend Score 趋势分数
     tf_scores = [t['score'] for t in data.get('timeframe_trends', []) if 'score' in t]
     trend_score = round(sum(tf_scores) / len(tf_scores)) if tf_scores else 50
     scores['trend'] = trend_score
-
-    # 2. Momentum Score 动能分数
     rsi_1h = data.get('rsi_1h')
     rsi_4h = data.get('rsi_4h')
     macd_h = data.get('macd_hist_1h')
@@ -297,8 +258,6 @@ def calc_scores(data, klines_dict):
         if macd_h > 0: mom += 10
         else: mom -= 10
     scores['momentum'] = max(0, min(100, round(mom)))
-
-    # 3. Volume Score 成交量分数
     vr = data.get('vol_ratio_1h')
     vol_sig = data.get('volume_signal', '')
     vol = 50
@@ -308,8 +267,6 @@ def calc_scores(data, klines_dict):
         elif vr < 0.5: vol = 35
         else: vol = 55
     scores['volume'] = max(0, min(100, round(vol)))
-
-    # 4. Risk Score 风险分数（越高越危险）
     rsi_v = rsi_1h or 50
     bb_upper = data.get('bb_upper_1h')
     bb_lower = data.get('bb_lower_1h')
@@ -324,66 +281,36 @@ def calc_scores(data, klines_dict):
     if change > 8: risk += 15
     elif change > 5: risk += 8
     scores['risk'] = max(0, min(100, round(risk)))
-
-    # 5. Signal Score 综合信号
-    signal = round(
-        trend_score * 0.35 +
-        scores['momentum'] * 0.30 +
-        scores['volume'] * 0.20 +
-        (100 - scores['risk']) * 0.15
-    )
+    signal = round(trend_score*0.35 + scores['momentum']*0.30 + scores['volume']*0.20 + (100-scores['risk'])*0.15)
     scores['signal'] = max(0, min(100, signal))
-
-    # 信号解读
     def interpret(s):
         if s >= 80: return '强烈看多 🚀', 'bull'
         elif s >= 60: return '偏多 📈', 'bull'
         elif s >= 40: return '震荡观望 ↔️', 'neutral'
         elif s >= 20: return '偏空 📉', 'bear'
         else: return '强烈看空 🔻', 'bear'
-
     scores['signal_text'], scores['signal_class'] = interpret(scores['signal'])
-
-    # 各项说明
-    scores['trend_reason']    = f"多周期均线趋势综合得分，分数{'偏高说明趋势向上' if trend_score > 60 else '偏低说明趋势向下' if trend_score < 40 else '居中说明趋势不明'}"
-    scores['momentum_reason'] = f"RSI={rsi_1h or '--'}，MACD柱{'正值动能强' if macd_h and macd_h > 0 else '负值动能弱' if macd_h else '计算中'}，动能{'较强' if scores['momentum']>60 else '较弱' if scores['momentum']<40 else '中性'}"
+    scores['trend_reason']    = f"多周期均线趋势综合，分数{'偏高趋势向上' if trend_score>60 else '偏低趋势向下' if trend_score<40 else '居中趋势不明'}"
+    scores['momentum_reason'] = f"RSI={rsi_1h or '--'}，MACD柱{'正值动能强' if macd_h and macd_h>0 else '负值动能弱' if macd_h else '计算中'}，动能{'较强' if scores['momentum']>60 else '较弱' if scores['momentum']<40 else '中性'}"
     scores['volume_reason']   = f"量比{vr or '--'}x，{data.get('volume_signal_detail','')}"
-    scores['risk_reason']     = f"RSI{'超买风险' if rsi_v>70 else '超卖反弹风险' if rsi_v<30 else '正常区间'}，24H波动{abs(data.get('change_24h',0)):.1f}%，{'高波动高风险' if change>5 else '波动正常'}"
-    scores['signal_reason']   = f"趋势35%+动能30%+成交量20%+风险15%加权，综合信号{scores['signal_text']}"
-
+    scores['risk_reason']     = f"RSI{'超买' if rsi_v>70 else '超卖' if rsi_v<30 else '正常'}，24H波动{abs(data.get('change_24h',0)):.1f}%"
+    scores['signal_reason']   = f"趋势35%+动能30%+量能20%+风险15%加权→{scores['signal_text']}"
     return scores
-
-# ─── 止盈止损 ────────────────────────────────────────────────
 
 def calc_tp_sl(price, atr_val, signal_score, sr):
     if not atr_val: atr_val = price * 0.02
     res_list = sr.get('resistance', [])
     sup_list = sr.get('support', [])
-    # 止损：最近支撑位下方，或ATR*1.5
-    if sup_list:
-        sl = round(sup_list[0]['price'] * 0.998, 8)
-    else:
-        sl = round(price - atr_val * 1.5, 8)
-    # 止盈：分级
-    if res_list:
-        tp1 = round(res_list[0]['price'] * 0.998, 8)
-        tp2 = round(res_list[1]['price'] * 0.998, 8) if len(res_list) > 1 else round(price + atr_val * 3, 8)
-    else:
-        tp1 = round(price + atr_val * 2, 8)
-        tp2 = round(price + atr_val * 4, 8)
+    sl = round(sup_list[0]['price'] * 0.998, 8) if sup_list else round(price - atr_val * 1.5, 8)
+    tp1 = round(res_list[0]['price'] * 0.998, 8) if res_list else round(price + atr_val * 2, 8)
+    tp2 = round(res_list[1]['price'] * 0.998, 8) if len(res_list) > 1 else round(price + atr_val * 4, 8)
     sl_pct  = round((price - sl) / price * 100, 2)
     tp1_pct = round((tp1 - price) / price * 100, 2)
     tp2_pct = round((tp2 - price) / price * 100, 2)
     rr = round(tp1_pct / sl_pct, 2) if sl_pct > 0 else 0
     risk_level = '低' if signal_score >= 60 and sl_pct < 3 else '高' if signal_score < 40 or sl_pct > 5 else '中'
-    return {
-        'stop_loss': sl, 'sl_pct': sl_pct,
-        'take_profit_1': tp1, 'tp1_pct': tp1_pct,
-        'take_profit_2': tp2, 'tp2_pct': tp2_pct,
-        'risk_reward': rr, 'risk_level': risk_level,
-    }
-
-# ─── 全量分析 ────────────────────────────────────────────────
+    return {'stop_loss': sl, 'sl_pct': sl_pct, 'take_profit_1': tp1, 'tp1_pct': tp1_pct,
+            'take_profit_2': tp2, 'tp2_pct': tp2_pct, 'risk_reward': rr, 'risk_level': risk_level}
 
 def full_analysis(coin):
     cfg = COIN_CONFIG[coin]
@@ -391,100 +318,46 @@ def full_analysis(coin):
     ticker = get_ticker(coin)
     if not ticker: return None
     price = ticker['price']
-
-    result = {
-        'coin': coin, 'name': cfg['name'],
-        'price': price,
-        'change_24h': ticker['change'],
-        'high_24h': ticker['high'],
-        'low_24h': ticker['low'],
-        'quote_volume_24h': round(ticker['quoteVolume'] / 1e6, 2),
-    }
-
-    # K线
+    result = {'coin': coin, 'name': cfg['name'], 'price': price,
+              'change_24h': ticker['change'], 'high_24h': ticker['high'],
+              'low_24h': ticker['low'], 'quote_volume_24h': round(ticker['quoteVolume']/1e6, 2)}
     klines = {}
     for iv, lim in [('15m',200),('1h',200),('4h',200),('1d',100)]:
         klines[iv] = get_klines(symbol, iv, lim)
-
-    k15 = klines.get('15m')
-    k1h = klines.get('1h')
-    k4h = klines.get('4h')
-    k1d = klines.get('1d')
-
-    # 1H指标
+    k15=klines.get('15m'); k1h=klines.get('1h'); k4h=klines.get('4h'); k1d=klines.get('1d')
     if k1h:
         c = k1h['closes']
-        result['ma5_1h']   = ma(c, 5)
-        result['ma10_1h']  = ma(c, 10)
-        result['ma20_1h']  = ma(c, 20)
-        result['ma50_1h']  = ma(c, 50)
-        result['ema20_1h'] = ema(c, 20)
-        result['ema50_1h'] = ema(c, 50)
-        result['rsi_1h']   = rsi(c)
-        m, s, h = macd(c)
-        result['macd_1h'], result['macd_signal_1h'], result['macd_hist_1h'] = m, s, h
-        bl, bm, bu = bollinger(c)
-        result['bb_lower_1h'], result['bb_mid_1h'], result['bb_upper_1h'] = bl, bm, bu
-        result['atr_1h'] = atr(k1h['highs'], k1h['lows'], c)
-        result['vol_ratio_1h'] = vol_ratio(k1h['volumes'])
-
+        result['ma5_1h']=ma(c,5); result['ma10_1h']=ma(c,10)
+        result['ma20_1h']=ma(c,20); result['ma50_1h']=ma(c,50)
+        result['ema20_1h']=ema(c,20); result['ema50_1h']=ema(c,50)
+        result['rsi_1h']=rsi(c)
+        m,s,h=macd(c); result['macd_1h']=m; result['macd_signal_1h']=s; result['macd_hist_1h']=h
+        bl,bm,bu=bollinger(c); result['bb_lower_1h']=bl; result['bb_mid_1h']=bm; result['bb_upper_1h']=bu
+        result['atr_1h']=atr(k1h['highs'],k1h['lows'],c)
+        result['vol_ratio_1h']=vol_ratio(k1h['volumes'])
     if k4h:
-        c = k4h['closes']
-        result['ma20_4h'] = ma(c, 20)
-        result['rsi_4h']  = rsi(c)
-        m4, _, _ = macd(c)
-        result['macd_4h'] = m4
-
+        c=k4h['closes']; result['ma20_4h']=ma(c,20); result['rsi_4h']=rsi(c)
+        m4,_,_=macd(c); result['macd_4h']=m4
     if k1d:
-        c = k1d['closes']
-        result['ma50_1d']  = ma(c, 50)
-        result['ma200_1d'] = ma(c, 200)
-        result['rsi_1d']   = rsi(c)
-
-    # 多周期趋势
-    result['timeframe_trends'] = [
-        trend_by_tf(k15, '15分钟'),
-        trend_by_tf(k1h, '1小时'),
-        trend_by_tf(k4h, '4小时'),
-        trend_by_tf(k1d, '日线'),
-    ]
-
-    # 成交量分析
-    va = volume_analysis(k1h)
-    result['vol_ratio_1h'] = va.get('vol_ratio')
-    result['volume_signal'] = va.get('signal', '')
-    result['volume_signal_detail'] = va.get('signal_detail', '')
-
-    # 支撑压力
-    sr = support_resistance(k1h, k4h, k1d, price)
-    result['resistance'] = sr['resistance']
-    result['support']    = sr['support']
-    # 兼容旧字段
-    result['resistance_levels'] = [r['price'] for r in sr['resistance']]
-    result['support_levels']    = [s['price'] for s in sr['support']]
-
-    # 日内/周内高低
+        c=k1d['closes']; result['ma50_1d']=ma(c,50); result['ma200_1d']=ma(c,200); result['rsi_1d']=rsi(c)
+    result['timeframe_trends']=[trend_by_tf(k15,'15分钟'),trend_by_tf(k1h,'1小时'),trend_by_tf(k4h,'4小时'),trend_by_tf(k1d,'日线')]
+    va=volume_analysis(k1h)
+    result['vol_ratio_1h']=va.get('vol_ratio'); result['volume_signal']=va.get('signal',''); result['volume_signal_detail']=va.get('signal_detail','')
+    sr=support_resistance(k1h,k4h,k1d,price)
+    result['resistance']=sr['resistance']; result['support']=sr['support']
+    result['resistance_levels']=[r['price'] for r in sr['resistance']]
+    result['support_levels']=[s['price'] for s in sr['support']]
     if k1h:
-        result['intraday_high'] = round(max(k1h['highs'][-24:]), 8)
-        result['intraday_low']  = round(min(k1h['lows'][-24:]), 8)
+        result['intraday_high']=round(max(k1h['highs'][-24:]),8)
+        result['intraday_low']=round(min(k1h['lows'][-24:]),8)
     if k1d:
-        result['week_high'] = round(max(k1d['highs'][-7:]), 8)
-        result['week_low']  = round(min(k1d['lows'][-7:]), 8)
-
-    # 短线预测区间
-    result['predicted_range'] = predict_range(k1h, price, result.get('atr_1h'))
-
-    # 评分
-    result['scores'] = calc_scores(result, klines)
-
-    # 止盈止损
-    result['tp_sl'] = calc_tp_sl(price, result.get('atr_1h'), result['scores']['signal'], sr)
-
-    result['updated_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        result['week_high']=round(max(k1d['highs'][-7:]),8)
+        result['week_low']=round(min(k1d['lows'][-7:]),8)
+    result['predicted_range']=predict_range(k1h,price,result.get('atr_1h'))
+    result['scores']=calc_scores(result,klines)
+    result['tp_sl']=calc_tp_sl(price,result.get('atr_1h'),result['scores']['signal'],sr)
+    result['updated_at']=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     return result
-
-# ─── 报告生成 ────────────────────────────────────────────────
-
 def generate_report(data):
     if not data: return '数据获取失败'
     if ANTHROPIC_API_KEY:
@@ -501,33 +374,17 @@ def generate_report(data):
 价格：${data['price']:,.4f}  24H涨跌：{data.get('change_24h',0):.2f}%
 成交量：{data.get('quote_volume_24h',0):.1f}M USDT
 
-评分系统：
-- 趋势分：{scores.get('trend','-')}/100
-- 动能分：{scores.get('momentum','-')}/100
-- 量能分：{scores.get('volume','-')}/100
-- 风险分：{scores.get('risk','-')}/100（越高越危险）
-- 综合信号：{scores.get('signal','-')}/100 → {scores.get('signal_text','')}
-
-多周期趋势：{' | '.join([f"{t['label']}:{t['trend']}" for t in tf_trends])}
-成交量信号：{data.get('volume_signal','')} {data.get('volume_signal_detail','')}
-
-压力位：{[f"${r['price']:,.2f}({r['label']})" for r in sr[:3]]}
-支撑位：{[f"${s['price']:,.2f}({s['label']})" for s in ss[:3]]}
-预测区间：${pr.get('low',0):,.2f} ~ ${pr.get('high',0):,.2f}（{pr.get('range_pct',0)}%）
-
-止损：${tp_sl.get('stop_loss',0):,.4f}（-{tp_sl.get('sl_pct',0):.2f}%）
-止盈1：${tp_sl.get('take_profit_1',0):,.4f}（+{tp_sl.get('tp1_pct',0):.2f}%）
-止盈2：${tp_sl.get('take_profit_2',0):,.4f}（+{tp_sl.get('tp2_pct',0):.2f}%）
-盈亏比：{tp_sl.get('risk_reward',0):.2f}  风险等级：{tp_sl.get('risk_level','')}
-
+评分：趋势{scores.get('trend','-')} 动能{scores.get('momentum','-')} 量能{scores.get('volume','-')} 风险{scores.get('risk','-')} 信号{scores.get('signal','-')}→{scores.get('signal_text','')}
+多周期：{' | '.join([f"{t['label']}:{t['trend']}" for t in tf_trends])}
+成交量：{data.get('volume_signal','')} {data.get('volume_signal_detail','')}
+压力位：{[f"${r['price']:,.4f}({r['label']})" for r in sr[:3]]}
+支撑位：{[f"${s['price']:,.4f}({s['label']})" for s in ss[:3]]}
+预测区间：${pr.get('low',0):,.4f}~${pr.get('high',0):,.4f}
+止损：${tp_sl.get('stop_loss',0):,.4f} 止盈1：${tp_sl.get('take_profit_1',0):,.4f} 止盈2：${tp_sl.get('take_profit_2',0):,.4f}
 RSI(1H)={data.get('rsi_1h','-')} RSI(4H)={data.get('rsi_4h','-')} MACD={data.get('macd_1h','-')}
 
-请按以下格式输出（每项1-2句，不要啰嗦）：
-【综合判断】
-【趋势分析】
-【关键价位】
-【操作建议】
-【风险提示】"""
+输出格式（每项1-2句）：
+【综合判断】【趋势分析】【关键价位】【操作建议】【风险提示】"""
             resp = requests.post(
                 'https://api.anthropic.com/v1/messages',
                 headers={'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json'},
@@ -536,29 +393,20 @@ RSI(1H)={data.get('rsi_1h','-')} RSI(4H)={data.get('rsi_4h','-')} MACD={data.get
             )
             return resp.json()['content'][0]['text']
         except: pass
-
-    # 规则报告
     scores = data.get('scores', {})
     tp_sl = data.get('tp_sl', {})
     pr = data.get('predicted_range', {})
     lines = []
     lines.append(f"【综合判断】{scores.get('signal_text','--')}（信号分{scores.get('signal','--')}/100）{scores.get('signal_reason','')}")
     tf = data.get('timeframe_trends', [])
-    if tf:
-        tf_str = ' | '.join([f"{t['label']}{t['trend']}" for t in tf])
-        lines.append(f"【多周期趋势】{tf_str}")
+    if tf: lines.append(f"【多周期趋势】{' | '.join([f\"{t['label']}{t['trend']}\" for t in tf])}")
     lines.append(f"【成交量】{data.get('volume_signal','')} {data.get('volume_signal_detail','')}")
-    sr = data.get('resistance', [])
-    ss = data.get('support', [])
-    res_str = '、'.join([f"${r['price']:,.2f}" for r in sr[:2]]) if sr else '暂无'
-    sup_str = '、'.join([f"${s['price']:,.2f}" for s in ss[:2]]) if ss else '暂无'
-    lines.append(f"【关键价位】压力：{res_str} | 支撑：{sup_str}")
-    lines.append(f"【预测区间】短线波动区间 ${pr.get('low',0):,.4f} ~ ${pr.get('high',0):,.4f}")
-    lines.append(f"【止盈止损】止损 ${tp_sl.get('stop_loss',0):,.4f}（-{tp_sl.get('sl_pct',0):.2f}%）| 止盈1 ${tp_sl.get('take_profit_1',0):,.4f}（+{tp_sl.get('tp1_pct',0):.2f}%）| 盈亏比 {tp_sl.get('risk_reward',0):.2f}")
+    sr = data.get('resistance', []); ss = data.get('support', [])
+    lines.append(f"【关键价位】压力：{'、'.join([f\"${r['price']:,.4f}\" for r in sr[:2]]) if sr else '暂无'} | 支撑：{'、'.join([f\"${s['price']:,.4f}\" for s in ss[:2]]) if ss else '暂无'}")
+    lines.append(f"【预测区间】${pr.get('low',0):,.4f} ~ ${pr.get('high',0):,.4f}")
+    lines.append(f"【止盈止损】止损${tp_sl.get('stop_loss',0):,.4f}(-{tp_sl.get('sl_pct',0):.2f}%) | 止盈1${tp_sl.get('take_profit_1',0):,.4f}(+{tp_sl.get('tp1_pct',0):.2f}%) | 盈亏比{tp_sl.get('risk_reward',0):.2f}")
     lines.append(f"【风险等级】{tp_sl.get('risk_level','中')} | {scores.get('risk_reason','')}")
     return '\n'.join(lines)
-
-# ─── Telegram ────────────────────────────────────────────────
 
 def send_telegram(message):
     if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID: return False
@@ -567,8 +415,6 @@ def send_telegram(message):
             json={'chat_id': TELEGRAM_CHAT_ID, 'text': message, 'parse_mode': 'HTML'}, timeout=10)
         return r.status_code == 200
     except: return False
-
-# ─── 价格监控线程 ────────────────────────────────────────────
 
 def check_alerts():
     while True:
@@ -595,8 +441,6 @@ def check_alerts():
             if changed: save_json(ALERTS_FILE, alerts); save_json(HISTORY_FILE, history)
         except Exception as e: print(f"Monitor error: {e}")
         time.sleep(30)
-
-# ─── 路由 ────────────────────────────────────────────────────
 
 @app.route('/')
 def index(): return render_template('index.html')
@@ -639,7 +483,9 @@ def get_alerts(): return jsonify(load_json(ALERTS_FILE, []))
 def add_alert():
     d = request.json
     alerts = load_json(ALERTS_FILE, [])
-    alerts.append({'id':int(time.time()*1000),'coin':d['coin'],'condition':d['condition'],'price':float(d['price']),'triggered':False,'created':datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
+    alerts.append({'id':int(time.time()*1000),'coin':d['coin'],'condition':d['condition'],
+                   'price':float(d['price']),'triggered':False,
+                   'created':datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
     save_json(ALERTS_FILE, alerts)
     return jsonify({'ok': True})
 
