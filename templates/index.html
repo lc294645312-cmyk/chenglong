@@ -328,8 +328,7 @@ function switchCoin(coin){
   document.getElementById('coin-label').textContent=coin+'/USDT';
   document.getElementById('main-price').textContent='--';
   document.getElementById('report-box').innerHTML='<div class="placeholder">点击「立即分析」获取报告</div>';
-  resetDecision();
-  loadPrices();
+  resetDecision();loadPrices();
 }
 function switchTab(name){
   var tabs=['report','trends','indicators','levels','tpsl','alerts','history'];
@@ -394,22 +393,57 @@ function setDitem(id,cls,val){
   document.getElementById(id+'-val').textContent=val||'暂无数据';
 }
 function resetDecision(){
-  setDitem('dec-grade','grade-c','暂无数据');
-  setDitem('dec-conf','risk-mid','暂无数据');
-  setDitem('dec-pos','pos-zero','暂无数据');
-  setDitem('dec-regime','regime-neutral','暂无数据');
-  setDitem('dec-fb','risk-mid','暂无数据');
-  setDitem('dec-mtf','risk-mid','暂无数据');
+  setDitem('dec-grade','grade-c','--');setDitem('dec-conf','risk-mid','--');
+  setDitem('dec-pos','pos-zero','--');setDitem('dec-regime','regime-neutral','--');
+  setDitem('dec-fb','risk-mid','--');setDitem('dec-mtf','risk-mid','--');
+}
+function calcTradeGate(d){
+  var sc=d.scores||{},ag=d.final_action_grade||{},ps=d.position_sizing||{};
+  var rl=d.risk_level||{},mtf=d.multi_timeframe_signal||{};
+  var res=d.resistance||[],sup=d.support||[];
+  var g=ag.grade||'E',sig=sc.signal||0,vol=sc.volume||0;
+  var vr=d.vol_ratio_1h,rlv=rl.level||'中',pos=ps.suggested_position||'0%';
+  var mtfS=mtf.status||'',price=d.price||0,h24=d.high_24h||0,l24=d.low_24h||0,ch=d.change_24h||0;
+  var deGrade=g==='D'||g==='E';
+  var posZero=pos==='0%';
+  var riskHigh=rlv==='高'||rlv==='中高';
+  var volWeak=(vr!==null&&vr!==undefined&&vr<0.8)||vol<50;
+  var nearHigh=h24>0&&price>0&&(h24-price)/h24<0.02;
+  var nearLow=l24>0&&price>0&&(price-l24)/l24<0.02;
+  var nearRes=res.length>0&&res[0].dist<2.0;
+  var nearSup=sup.length>0&&Math.abs(sup[0].dist)<1.5;
+  var mtfConflict=mtfS.indexOf('无共振')>=0;
+  var bigRise=ch>5&&volWeak;
+  var fromHigh=ch<-5&&(nearHigh||(h24>0&&price<h24*0.95));
+  var upSpace=res.length>0?res[0].dist:5;
+  var dnSpace=sup.length>0?Math.abs(sup[0].dist):5;
+  var badRR=upSpace>0&&dnSpace>0&&upSpace<dnSpace*0.8;
+  var qualified=sig>=70&&(g==='A+'||g==='A'||g==='B')
+    &&!posZero&&!riskHigh&&!volWeak&&!nearHigh&&!nearRes&&!mtfConflict&&vol>=60&&!badRR;
+  return{g:g,sig:sig,vol:vol,vr:vr,rlv:rlv,pos:pos,mtfS:mtfS,
+    deGrade:deGrade,posZero:posZero,riskHigh:riskHigh,volWeak:volWeak,
+    nearHigh:nearHigh,nearLow:nearLow,nearRes:nearRes,nearSup:nearSup,
+    mtfConflict:mtfConflict,bigRise:bigRise,fromHigh:fromHigh,
+    upSpace:upSpace,dnSpace:dnSpace,badRR:badRR,qualified:qualified};
 }
 function updateDecision(d){
   var ag=d.final_action_grade||{},conf=d.signal_confidence||{},ps=d.position_sizing||{};
   var mr=d.market_regime||{},fb=d.fake_breakout_risk||{},mtf=d.multi_timeframe_signal||{};
-  var grade=ag.grade||'--',confLv=conf.level||'--',posVal=ps.suggested_position||'0%';
+  var gate=calcTradeGate(d);
+  var grade=ag.grade||'E',confLv=conf.level||'低',posVal=ps.suggested_position||'0%';
   var regime=mr.type||'--',fbLv=fb.level||'--',mtfSt=mtf.status||'--';
-  var action=ag.action?ag.action.split('，')[0]:'';
-  setDitem('dec-grade',gradeClass(grade),grade+(action?'\n'+action:''));
+  var gradeLabel;
+  if(gate.deGrade){gradeLabel=grade+'\n禁止开仓';}
+  else if(gate.qualified){gradeLabel=grade+'\n可关注机会';}
+  else{
+    var reason=gate.posZero?'仓位0%':gate.volWeak?'量能不足':gate.nearRes?'接近压力':gate.riskHigh?'风险过高':'条件待满足';
+    gradeLabel=grade+'\n'+reason;
+  }
+  setDitem('dec-grade',gradeClass(grade),gradeLabel);
   setDitem('dec-conf',riskClass(confLv),confLv);
-  setDitem('dec-pos',posClass(posVal),posVal+'\n'+(ps.level||''));
+  var posLabel=posVal+'\n'+(ps.level||'');
+  if(gate.posZero&&!gate.deGrade)posLabel='0%\n条件不足';
+  setDitem('dec-pos',posClass(posVal),posLabel);
   var rs=regime.replace(' 🚀','').replace(' 🔻','').replace(' 📈','').replace(' 📉','').replace(' ↔️','');
   setDitem('dec-regime',regimeClass(regime),rs);
   setDitem('dec-fb',riskClass(fbLv),fbLv);
@@ -426,11 +460,61 @@ function updateAll(d){
   document.getElementById('stat-vol').textContent=fmt(d.quote_volume_24h,1);
   document.getElementById('update-bar').textContent='分析时间：'+(d.updated_at||'');
   updateDecision(d);
-  var sigCls=sc.signal_class||'neutral';
-  document.getElementById('signal-card').className='signal-card '+sigCls;
-  var stEl=document.getElementById('signal-text');stEl.textContent=sc.signal_text||'--';stEl.className='signal-text '+sigCls;
-  var ssEl=document.getElementById('signal-score');ssEl.textContent=sc.signal||'--';ssEl.className='signal-score '+sigCls;
-  document.getElementById('signal-reason').textContent=sc.signal_reason||'';
+  // ── 信号卡（交易资格gate优先）──────────────────────────
+  var gate=calcTradeGate(d);
+  var sig_s=sc.signal||0,sc_dir=sc.signal_direction||'',trend_s=sc.trend||0;
+  var isBull=sc_dir.indexOf('多')>=0||sc_dir==='看多'||sc_dir==='强多';
+  var isBear=sc_dir.indexOf('空')>=0||sc_dir==='看空'||sc_dir==='强空';
+  var displayText,displayCls,riskNote;
+  if(gate.deGrade){
+    displayText='禁止开仓';displayCls='bear';
+    riskNote='操作等级'+gate.g+'：方向信号不等于交易信号，当前等级未达交易标准。'
+      +(gate.volWeak?'趋势分较高，但量能不足（量比'+(gate.vr||'--')+'x，量能分'+gate.vol+'），偏多信号不可靠。':'')
+      +(gate.nearRes?'接近压力位，追多盈亏比不佳。':'');
+  }else if((gate.nearHigh||gate.nearRes)&&isBull){
+    displayText='追高风险，禁止开仓';displayCls='bear';
+    var resDist=(d.resistance||[]).length>0?(d.resistance||[])[0].dist:null;
+    riskNote='短线偏多，但当前位置接近压力区'
+      +(resDist!==null?'（距压力位+'+resDist+'%）':'（接近24H高点）')
+      +'，追多盈亏比不佳，等待回踩支撑或有效突破确认。';
+  }else if(gate.fromHigh&&isBull){
+    displayText='追高风险，禁止开仓';displayCls='bear';
+    riskNote='高位回落信号，短线追多失败风险增加。24H已下跌'+Math.abs(d.change_24h||0).toFixed(1)+'%，不建议追多。';
+  }else if(gate.volWeak&&isBull){
+    displayText='量能不足，偏多观察';displayCls='neutral';
+    riskNote='趋势表现'+(trend_s>=70?'较强（趋势分'+trend_s+'）':'偏多')
+      +'，但量能不足（量比'+(gate.vr||'--')+'x，量能分'+gate.vol
+      +'），上涨缺乏成交确认，偏多信号可靠性下降。'
+      +(gate.bigRise?'上涨未获量能确认，存在回落风险。':'');
+  }else if(gate.nearLow&&isBear){
+    displayText='偏空风险，不追空';displayCls='bear';
+    riskNote='短线偏弱，但已接近支撑区，追空盈亏比不佳，等待跌破确认或止跌反弹。';
+  }else if(gate.riskHigh){
+    displayText='风险过高，仅观察';displayCls='bear';
+    riskNote='风险等级'+gate.rlv+'：当前不满足交易条件，仅供观察。';
+  }else if(gate.qualified){
+    displayText=sig_s>=80?'强机会，需止损执行':'信号改善，可小仓';displayCls='bull';
+    riskNote='已满足交易资格，方向'+sc_dir+'，操作等级'+gate.g+'。请严格设置止损，不加仓追高。';
+  }else if(sig_s>=60&&sig_s<70){
+    displayText=isBull?'偏多但无交易资格':'偏空风险，不追空';displayCls='neutral';
+    riskNote='方向有所改善，但评分'+sig_s+'未达交易门槛（需≥70），等待确认。评分处于观察区，不代表可以买入。';
+  }else if(sig_s>=50&&sig_s<60){
+    displayText=isBull?'偏多观察，不追高':'偏空风险，不追空';displayCls='neutral';
+    riskNote='方向轻微'+(isBull?'偏多':'偏空')+'，但信号较弱（评分'+sig_s+'），仅观察。评分处于观察区，不代表可以买入。';
+  }else if(sig_s>=45&&sig_s<50){
+    displayText='震荡观望，等待确认';displayCls='neutral';
+    riskNote='信号中性，方向不明，等待更清晰信号再做判断。';
+  }else if(sig_s>=35&&sig_s<45){
+    displayText='偏空风险，不追空';displayCls='bear';
+    riskNote=gate.nearSup?'短线偏弱，但已接近支撑区，追空盈亏比不佳，等待跌破确认或止跌反弹。':'方向偏空，风险偏高，不建议追空，观望为主。';
+  }else{
+    displayText='信号不足，空仓等待';displayCls='bear';
+    riskNote='综合信号不足（评分'+sig_s+'），无明确方向，建议空仓等待更清晰机会。';
+  }
+  document.getElementById('signal-card').className='signal-card '+displayCls;
+  var stEl=document.getElementById('signal-text');stEl.textContent=displayText;stEl.className='signal-text '+displayCls;
+  var ssEl=document.getElementById('signal-score');ssEl.textContent=sig_s||'--';ssEl.className='signal-score '+displayCls;
+  document.getElementById('signal-reason').textContent=riskNote||sc.signal_reason||'';
   var sk=[['trend','#4a9eff'],['momentum','#9a6aff'],['volume','#22d46a'],['risk','#e04a4a']];
   for(var i=0;i<sk.length;i++){var k=sk[i][0],c=sk[i][1],v=sc[k]||0;document.getElementById('bar-'+k).style.width=v+'%';document.getElementById('bar-'+k).style.background=c;document.getElementById('num-'+k).textContent=v;}
   document.getElementById('report-box').textContent=d.report||'报告生成失败';
@@ -498,8 +582,7 @@ function loadHistory(){
     el.innerHTML=html;
   }).catch(function(){});
 }
-var coinCache={};
-var rankOpen=false;
+var coinCache={},rankOpen=false;
 var GRADE_SCORE={'A+':6,'A':5,'B':4,'C':3,'D':2,'E':1};
 var RISK_SCORE={'高':5,'中高':4,'中':3,'中低':2,'低':1};
 function toggleRank(){
@@ -517,8 +600,7 @@ function rankBy(keyFn,coins,higher){
   }
   scored.sort(function(a,b){
     if(a.val===null&&b.val===null)return 0;
-    if(a.val===null)return 1;
-    if(b.val===null)return-1;
+    if(a.val===null)return 1;if(b.val===null)return-1;
     return higher?b.val-a.val:a.val-b.val;
   });
   return scored;
@@ -527,12 +609,8 @@ function rankItem(icon,label,coin,valueText,reason){
   var html='<div class="rank-item"><div class="rank-row1">';
   html+='<span class="rank-icon">'+icon+'</span>';
   html+='<span class="rank-label">'+label+'</span>';
-  if(coin){
-    html+='<span class="rank-coin">'+coin+'</span>';
-    html+='<span class="rank-value" style="color:#8ab0d0">'+(valueText||'')+'</span>';
-  }else{
-    html+='<span class="rank-empty">-- 等待分析</span>';
-  }
+  if(coin){html+='<span class="rank-coin">'+coin+'</span><span class="rank-value" style="color:#8ab0d0">'+(valueText||'')+'</span>';}
+  else{html+='<span class="rank-empty">-- 等待分析</span>';}
   html+='</div>';
   if(coin&&reason)html+='<div class="rank-reason">'+reason+'</div>';
   html+='</div>';
@@ -553,59 +631,96 @@ function updateRanking(){
   if(allWeak){
     html+='<div style="background:#1a0a08;border:1px solid #4a1a10;border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:11px;color:#d07060;line-height:1.5;">⛔ 当前市场整体无优势交易机会，建议空仓或等待更清晰信号。</div>';
   }
+  // 1. 综合评分最高
   var bySignal=rankBy(function(d){return(d.scores||{}).signal||0;},COINS,true);
   var top1=bySignal[0];
   if(top1.val!==null){
-    var d1=coinCache[top1.coin],sig1=top1.val,dir1=(d1.scores||{}).signal_direction||'--',vr1=d1.vol_ratio_1h;
+    var d1=coinCache[top1.coin],sig1=top1.val,sc1=d1.scores||{};
+    var dir1=sc1.signal_direction||'--',vr1=d1.vol_ratio_1h,vol1=sc1.volume||0;
     var ag1=(d1.final_action_grade||{}).grade||'E',conf1=(d1.signal_confidence||{}).level||'低';
-    var isStrong1=sig1>=70&&(ag1==='A+'||ag1==='A'||ag1==='B')&&(conf1==='高'||conf1==='中高');
+    var gate1=calcTradeGate(d1);
     var label1,reason1;
-    if(isStrong1){label1=sig1+'分 强机会';reason1='信号'+sig1+'/100，方向'+dir1+'，操作等级'+ag1+'，置信度'+conf1;}
-    else if(sig1>=50){label1=sig1+'分 观察机会';reason1='信号'+sig1+'/100，方向'+dir1+'，操作等级'+ag1+'，仅供观察参考';}
-    else{label1=sig1+'分';reason1='五币中相对分数最高，但绝对评分偏低（<50），方向'+dir1+'，仅供观察，不代表交易机会';}
-    if(vr1&&vr1<0.8)reason1+='。量比仅'+vr1+'x，成交量不足';
+    if(gate1.qualified){
+      label1=sig1+'分 强机会';
+      reason1='信号'+sig1+'/100，方向'+dir1+'，操作等级'+ag1+'，满足交易资格，请严格止损执行。';
+    }else if(gate1.deGrade){
+      label1=sig1+'分 不具备交易资格';
+      reason1='操作等级'+ag1+'：方向信号不等于交易信号。评分'+sig1+'主要来自趋势分，'
+        +(gate1.volWeak?'量能明显不足（量比'+(gate1.vr||'--')+'x，量能分'+gate1.vol+'），偏多信号不可靠。':'')
+        +(gate1.nearRes?'接近压力位，追多盈亏比不佳。':'')+'禁止开仓，仅风险观察。';
+    }else if(gate1.posZero){
+      label1=sig1+'分 仓位0%';
+      reason1='评分靠前，但仓位建议为0%，不具备交易条件。'
+        +(gate1.volWeak?'量能不足（量比'+(gate1.vr||'--')+'x）。':'')
+        +(gate1.nearRes?'接近压力位。':'');
+    }else if(gate1.nearHigh||gate1.nearRes){
+      label1=sig1+'分 追高风险';
+      reason1='方向'+dir1+'，但接近压力区/高位，追多盈亏比不佳，等待回踩或有效突破确认。';
+    }else if(gate1.volWeak){
+      label1=sig1+'分 量能不足';
+      reason1='方向'+dir1+'，趋势分'+(sc1.trend||'--')+'，但量能不足（量比'+(gate1.vr||'--')+'x，量能分'+gate1.vol+'），不能视为强趋势信号。';
+    }else if(sig1>=60){
+      label1=sig1+'分 观察区';
+      reason1='方向'+dir1+'，评分'+sig1+'处于观察区（60-69），未达交易门槛（需≥70），仅供观察参考。';
+    }else if(sig1>=50){
+      label1=sig1+'分 观察区';
+      reason1='该币种只是相对较强，不代表可以买入。评分'+sig1+'处于观察区，方向'+dir1+'，仅供观察。';
+    }else{
+      label1=sig1+'分';
+      reason1='五币中相对分数最高，但当前无真正优势交易机会。绝对评分'+sig1+'偏低，仅供观察。';
+    }
     html+=rankItem('🏆','综合评分最高',top1.coin,label1,reason1);
   }else html+=rankItem('🏆','综合评分最高',null,'','');
+  // 2. 操作等级
   var byGrade=rankBy(function(d){return GRADE_SCORE[((d.final_action_grade||{}).grade)||'E']||1;},COINS,true);
   var top2=byGrade[0];
   if(top2.val!==null){
-    var d2=coinCache[top2.coin],g2=(d2.final_action_grade||{}).grade||'E',act2=((d2.final_action_grade||{}).action||'--').split('，')[0];
+    var d2=coinCache[top2.coin],g2=(d2.final_action_grade||{}).grade||'E';
+    var act2=((d2.final_action_grade||{}).action||'--').split('，')[0];
     var allDE=analyzed.every(function(c){var g=(coinCache[c].final_action_grade||{}).grade||'E';return g==='D'||g==='E';});
     if(allDE)html+=rankItem('⭐','操作机会',null,'','当前所有已分析币种操作等级均为D/E，无明确交易机会，建议观望');
     else if(g2==='D'||g2==='E')html+=rankItem('⭐','操作机会',top2.coin,g2+'级 风险观察','相对等级最高，但仍为'+g2+'级，仅适合观察，不建议开仓');
     else html+=rankItem('⭐','操作等级最好',top2.coin,g2+'级','系统判断：'+act2+'，请结合完整报告决策');
   }else html+=rankItem('⭐','操作机会',null,'','');
+  // 3. 置信度
   var byConf=rankBy(function(d){return RISK_SCORE[((d.signal_confidence||{}).level)||'低']||1;},COINS,true);
   var top3=byConf[0];
   if(top3.val!==null){
-    var d3=coinCache[top3.coin],lv3=(d3.signal_confidence||{}).level||'--',rs3=((d3.signal_confidence||{}).reason||'').split('；')[0]||'--';
+    var d3=coinCache[top3.coin],lv3=(d3.signal_confidence||{}).level||'--';
+    var rs3=((d3.signal_confidence||{}).reason||'').split('；')[0]||'--';
     html+=rankItem('🎯','置信度最高',top3.coin,lv3,'置信依据：'+rs3);
   }else html+=rankItem('🎯','置信度最高',null,'','');
+  // 4. 假突破风险
   var byFB=rankBy(function(d){return RISK_SCORE[((d.fake_breakout_risk||{}).level)||'低']||1;},COINS,true);
   var top4=byFB[0];
   if(top4.val!==null){
-    var d4=coinCache[top4.coin],lv4=(d4.fake_breakout_risk||{}).level||'--',fc4=(d4.fake_breakout_risk||{}).factors||[];
+    var d4=coinCache[top4.coin],lv4=(d4.fake_breakout_risk||{}).level||'--';
+    var fc4=(d4.fake_breakout_risk||{}).factors||[];
     html+=rankItem('⚠️','假突破风险最高',top4.coin,lv4+'风险',fc4.length?fc4[0].substring(0,28)+'…':'需留意假突破可能');
   }else html+=rankItem('⚠️','假突破风险最高',null,'','');
+  // 5. 最近支撑位
   var bySup=rankBy(function(d){var sup=d.support||[];if(!sup.length)return null;return Math.abs(sup[0].dist);},COINS,false);
   var top5=bySup[0];
   if(top5.val!==null){
     var d5=coinCache[top5.coin],s5=(d5.support||[])[0];
     html+=rankItem('📍','最近支撑位',top5.coin,s5.dist+'%','支撑 $'+(s5.price||'--')+'，距'+Math.abs(s5.dist)+'%，可观察是否有效支撑');
   }else html+=rankItem('📍','最近支撑位',null,'','');
+  // 6. 最近压力位
   var byRes=rankBy(function(d){var res=d.resistance||[];if(!res.length)return null;return res[0].dist;},COINS,false);
   var top6=byRes[0];
   if(top6.val!==null){
     var d6=coinCache[top6.coin],r6=(d6.resistance||[])[0];
-    var resReason6=r6.dist<=0.5?'当前价格已接近压力位（仅+'+r6.dist+'%），追多风险高，需等待有效突破确认':'压力 $'+(r6.price||'--')+'，距+'+r6.dist+'%，上方空间有限需谨慎';
-    html+=rankItem('🔝','最近压力位',top6.coin,'+'+r6.dist+'%',resReason6);
+    var resR6=r6.dist<=0.5?'当前价格已接近压力位（仅+'+r6.dist+'%），追多风险高，需等待有效突破确认':'压力 $'+(r6.price||'--')+'，距+'+r6.dist+'%，上方空间有限需谨慎';
+    html+=rankItem('🔝','最近压力位',top6.coin,'+'+r6.dist+'%',resR6);
   }else html+=rankItem('🔝','最近压力位',null,'','');
+  // 7. 最不建议追高
   var byChase=rankBy(function(d){var sig=(d.scores||{}).signal||0,vr=d.vol_ratio_1h||1,fb=RISK_SCORE[((d.fake_breakout_risk||{}).level)||'低']||1;if(sig<50)return 0;return sig*(1/Math.max(vr,0.1))*fb;},COINS,true);
   var top7=byChase[0];
   if(top7.val!==null&&top7.val>0){
     var d7=coinCache[top7.coin],sig7=(d7.scores||{}).signal||0,vr7=d7.vol_ratio_1h,lv7=(d7.fake_breakout_risk||{}).level||'--';
     html+=rankItem('🚫','最不建议追高',top7.coin,'信号'+sig7+'分','量比'+(vr7||'--')+'x，假突破风险'+lv7+'，不建议在此价位直接追入');
   }else html+=rankItem('🚫','最不建议追高',null,'','');
+  // 8. 观察等待
   var byWait=rankBy(function(d){var g=(d.final_action_grade||{}).grade||'E',mr=(d.market_regime||{}).type||'';var gScore=(g==='C')?3:(g==='D')?2:(g==='E')?1:0,oscil=(mr.indexOf('震荡')>=0||mr.indexOf('横盘')>=0)?1:0;return gScore+oscil;},COINS,true);
   var top8=byWait[0];
   if(top8.val!==null&&top8.val>0){
