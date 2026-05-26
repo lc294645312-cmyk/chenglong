@@ -48,6 +48,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;backg
 .pos-light{background:#0e0e06;border-color:#d4a022;}.pos-light .ditem-val{color:#d4a022;}
 .pos-mid{background:#081408;border-color:#60c460;}.pos-mid .ditem-val{color:#60c460;}
 .pos-full{background:#041a08;border-color:#22d46a;}.pos-full .ditem-val{color:#22d46a;}
+.rank-card{margin:0 12px 8px;background:#080e1c;border:1px solid #1a2a45;border-radius:14px;overflow:hidden;}
+.rank-header{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer;font-size:12px;font-weight:700;color:#8ab0d0;-webkit-tap-highlight-color:transparent;}
+.rank-header:active{background:#0a1220;}
+.rank-body{padding:0 12px 10px;}
+.rank-item{display:flex;flex-direction:column;padding:8px 0;border-bottom:1px solid #0e1830;}
+.rank-item:last-child{border-bottom:none;}
+.rank-row1{display:flex;align-items:center;gap:8px;}
+.rank-icon{font-size:14px;width:20px;flex-shrink:0;}
+.rank-label{font-size:10px;color:#4a6890;width:90px;flex-shrink:0;}
+.rank-coin{font-size:13px;font-weight:700;color:#4a9eff;width:42px;flex-shrink:0;}
+.rank-value{font-size:12px;font-weight:600;}
+.rank-reason{font-size:10px;color:#4a6890;margin-top:3px;padding-left:28px;line-height:1.4;}
+.rank-empty{font-size:11px;color:#304060;padding-left:28px;margin-top:2px;}
 .signal-card{margin:0 12px 8px;border-radius:16px;padding:14px;border:2px solid #d4a022;background:#0e100a;}
 .signal-card.bull{background:#061a10;border-color:#22d46a;}
 .signal-card.bear{background:#1a0608;border-color:#e04a4a;}
@@ -128,6 +141,21 @@ select{flex:1;}input{flex:2;}
   <div class="sub">BTC · ETH · DOGE · BCH · ZEC · 评分系统 · AI分析</div>
 </div>
 <div class="coin-scroll" id="coin-scroll"></div>
+<!-- 5币种横向排名（折叠卡，默认收起）-->
+<div class="rank-card" id="rank-card">
+  <div class="rank-header" onclick="toggleRank()">
+    <span>📊 5币种横向排名</span>
+    <span id="rank-count" style="font-size:10px;color:#4a6890;">（先分析各币种后显示）</span>
+    <span id="rank-arrow" style="margin-left:auto;color:#4a6890;font-size:12px;">▶</span>
+  </div>
+  <div class="rank-body" id="rank-body" style="display:none;">
+    <div id="rank-list"></div>
+    <div style="font-size:10px;color:#304060;text-align:center;padding:8px 0 2px;">
+      ⚠️ 仅供观察参考，不代表买入建议，请结合完整报告决策
+    </div>
+  </div>
+</div>
+<!-- 价格卡（原有，不变） -->
 <div class="price-card">
   <div class="price-top">
     <div class="price-left">
@@ -278,7 +306,7 @@ select{flex:1;}input{flex:2;}
     <div class="tp-sl-grid" style="margin-bottom:10px">
       <div class="tp-sl-item"><div class="tp-sl-label">🔴 止损位</div><div class="tp-sl-price sl-color" id="sl-price">--</div><div class="tp-sl-pct sl-color" id="sl-pct">--</div></div>
       <div class="tp-sl-item"><div class="tp-sl-label">🟢 止盈1</div><div class="tp-sl-price tp-color" id="tp1-price">--</div><div class="tp-sl-pct tp-color" id="tp1-pct">--</div></div>
-      <div class="tp-sl-item"><div class="tp-sl-label">🟢 止盈2</div><div class="tp-sl-price tp-color" id="tp2-price">--</div><div class="tp-sl-pct tp-color" id="tp2-pct">--</div></div>
+      <div class="tp-sl-item"><div class="tp-sl-label">🟢 止盈2</div><div class="tp-sl-price tp-color" id="tp2-price">--</div><div class="tp-sl-pct tp2-pct" id="tp2-pct">--</div></div>
     </div>
     <div class="grid2">
       <div class="ind"><div class="ind-l">盈亏比</div><div class="ind-v" id="rr">--</div></div>
@@ -372,14 +400,8 @@ function doAnalyze(){
     btn.textContent='📊 立即分析 + 发送Telegram';btn.classList.remove('loading');btn.disabled=false;
   });
 }
-function gradeClass(g){
-  var m={'A+':'grade-ap','A':'grade-a','B':'grade-b','C':'grade-c','D':'grade-d','E':'grade-e'};
-  return m[g]||'grade-c';
-}
-function riskClass(lv){
-  var m={'低':'risk-low','中低':'risk-midl','中':'risk-mid','中高':'risk-midh','高':'risk-high'};
-  return m[lv]||'risk-mid';
-}
+function gradeClass(g){var m={'A+':'grade-ap','A':'grade-a','B':'grade-b','C':'grade-c','D':'grade-d','E':'grade-e'};return m[g]||'grade-c';}
+function riskClass(lv){var m={'低':'risk-low','中低':'risk-midl','中':'risk-mid','中高':'risk-midh','高':'risk-high'};return m[lv]||'risk-mid';}
 function regimeClass(t){
   if(!t)return'regime-neutral';
   if(t.indexOf('上涨')>=0||t.indexOf('突破')>=0)return'regime-bull';
@@ -486,6 +508,8 @@ function updateAll(d){
   document.getElementById('rr').textContent=(tp.risk_reward||0).toFixed(2)+':1';
   var rlEl=document.getElementById('risk-level');rlEl.textContent=tp.risk_level||'--';rlEl.className='ind-v '+(tp.risk_level==='高'?'bear':tp.risk_level==='低'?'bull':'neutral');
   document.getElementById('score-reasons').innerHTML='📈 趋势分 '+(sc.trend||'--')+'/100：'+(sc.trend_reason||'')+'<br><br>⚡ 动能分 '+(sc.momentum||'--')+'/100：'+(sc.momentum_reason||'')+'<br><br>📊 量能分 '+(sc.volume||'--')+'/100：'+(sc.volume_reason||'')+'<br><br>⚠️ 风险分 '+(sc.risk||'--')+'/100：'+(sc.risk_reason||'')+'<br><br>🎯 信号分 '+(sc.signal||'--')+'/100：'+(sc.signal_reason||'');
+  coinCache[currentCoin]=d;
+  updateRanking();
 }
 function loadAlerts(){
   fetch('/api/alerts').then(function(r){return r.json();}).then(function(alerts){
@@ -511,7 +535,85 @@ function loadHistory(){
     el.innerHTML=html;
   }).catch(function(){});
 }
-initCoins();loadPrices();loadAlerts();setInterval(loadPrices,30000);
+var coinCache={};
+var rankOpen=false;
+var GRADE_SCORE={'A+':6,'A':5,'B':4,'C':3,'D':2,'E':1};
+var RISK_SCORE={'高':5,'中高':4,'中':3,'中低':2,'低':1};
+function toggleRank(){
+  rankOpen=!rankOpen;
+  document.getElementById('rank-body').style.display=rankOpen?'block':'none';
+  document.getElementById('rank-arrow').textContent=rankOpen?'▼':'▶';
+}
+function rankBy(keyFn,coins,higher){
+  var scored=[];
+  for(var i=0;i<coins.length;i++){
+    var c=coins[i],d=coinCache[c];
+    if(!d){scored.push({coin:c,val:null});continue;}
+    var v=null;try{v=keyFn(d);}catch(e){}
+    scored.push({coin:c,val:v});
+  }
+  scored.sort(function(a,b){
+    if(a.val===null&&b.val===null)return 0;
+    if(a.val===null)return 1;
+    if(b.val===null)return-1;
+    return higher?b.val-a.val:a.val-b.val;
+  });
+  return scored;
+}
+function rankItem(icon,label,coin,valueText,reason){
+  var html='<div class="rank-item"><div class="rank-row1">';
+  html+='<span class="rank-icon">'+icon+'</span>';
+  html+='<span class="rank-label">'+label+'</span>';
+  if(coin){
+    html+='<span class="rank-coin">'+coin+'</span>';
+    html+='<span class="rank-value" style="color:#8ab0d0">'+(valueText||'')+'</span>';
+  }else{
+    html+='<span class="rank-empty">-- 等待分析</span>';
+  }
+  html+='</div>';
+  if(coin&&reason)html+='<div class="rank-reason">'+reason+'</div>';
+  html+='</div>';
+  return html;
+}
+function updateRanking(){
+  var analyzed=COINS.filter(function(c){return!!coinCache[c];});
+  var countEl=document.getElementById('rank-count');
+  if(countEl)countEl.textContent=analyzed.length>0?'已分析 '+analyzed.length+'/5（'+analyzed.join('·')+'）':'（先分析各币种后显示）';
+  if(analyzed.length===0){
+    document.getElementById('rank-list').innerHTML='<div style="font-size:11px;color:#304060;text-align:center;padding:14px 0;">请先分析各币种，未分析的币种显示「等待分析」</div>';
+    return;
+  }
+  var html='';
+  var s1=rankBy(function(d){return(d.scores||{}).signal||0;},COINS,true);
+  if(s1[0].val!==null){var d1=coinCache[s1[0].coin],vr1=d1.vol_ratio_1h,dir1=(d1.scores||{}).signal_direction||'--';html+=rankItem('🏆','综合评分最高',s1[0].coin,s1[0].val+'分','信号'+s1[0].val+'/100，方向：'+dir1+(vr1&&vr1<0.8?'，量比仅'+vr1+'x，仅供观察':'，仅供观察参考'));}
+  else html+=rankItem('🏆','综合评分最高',null,'','');
+  var s2=rankBy(function(d){return GRADE_SCORE[((d.final_action_grade||{}).grade)||'E']||1;},COINS,true);
+  if(s2[0].val!==null){var d2=coinCache[s2[0].coin],g2=(d2.final_action_grade||{}).grade||'--',act2=((d2.final_action_grade||{}).action||'--').split('，')[0];html+=rankItem('⭐','操作等级最好',s2[0].coin,g2+'级','系统判断：'+act2+'，请结合完整报告决策');}
+  else html+=rankItem('⭐','操作等级最好',null,'','');
+  var s3=rankBy(function(d){return RISK_SCORE[((d.signal_confidence||{}).level)||'低']||1;},COINS,true);
+  if(s3[0].val!==null){var d3=coinCache[s3[0].coin],lv3=(d3.signal_confidence||{}).level||'--',rs3=((d3.signal_confidence||{}).reason||'').split('；')[0]||'--';html+=rankItem('🎯','置信度最高',s3[0].coin,lv3,'置信依据：'+rs3);}
+  else html+=rankItem('🎯','置信度最高',null,'','');
+  var s4=rankBy(function(d){return RISK_SCORE[((d.fake_breakout_risk||{}).level)||'低']||1;},COINS,true);
+  if(s4[0].val!==null){var d4=coinCache[s4[0].coin],lv4=(d4.fake_breakout_risk||{}).level||'--',fc4=(d4.fake_breakout_risk||{}).factors||[];html+=rankItem('⚠️','假突破风险最高',s4[0].coin,lv4+'风险',fc4.length?fc4[0].substring(0,28)+'…':'需留意假突破可能');}
+  else html+=rankItem('⚠️','假突破风险最高',null,'','');
+  var s5=rankBy(function(d){var sup=d.support||[];if(!sup.length)return null;return Math.abs(sup[0].dist);},COINS,false);
+  if(s5[0].val!==null){var d5=coinCache[s5[0].coin],sp5=(d5.support||[])[0];html+=rankItem('📍','最近支撑位',s5[0].coin,sp5.dist+'%','支撑 $'+(sp5.price||'--')+'，距'+Math.abs(sp5.dist)+'%，可观察是否有效支撑');}
+  else html+=rankItem('📍','最近支撑位',null,'','');
+  var s6=rankBy(function(d){var res=d.resistance||[];if(!res.length)return null;return res[0].dist;},COINS,false);
+  if(s6[0].val!==null){var d6=coinCache[s6[0].coin],rp6=(d6.resistance||[])[0];html+=rankItem('🔝','最近压力位',s6[0].coin,'+'+rp6.dist+'%','压力 $'+(rp6.price||'--')+'，距'+rp6.dist+'%，上方空间有限需谨慎');}
+  else html+=rankItem('🔝','最近压力位',null,'','');
+  var s7=rankBy(function(d){var sig=(d.scores||{}).signal||0;var vr=d.vol_ratio_1h||1;var fb=RISK_SCORE[((d.fake_breakout_risk||{}).level)||'低']||1;if(sig<50)return 0;return sig*(1/Math.max(vr,0.1))*fb;},COINS,true);
+  if(s7[0].val!==null&&s7[0].val>0){var d7=coinCache[s7[0].coin],sig7=(d7.scores||{}).signal||0,vr7=d7.vol_ratio_1h,lv7=(d7.fake_breakout_risk||{}).level||'--';html+=rankItem('🚫','最不建议追高',s7[0].coin,'信号'+sig7+'分','量比'+(vr7||'--')+'x，假突破风险'+lv7+'，不建议在此价位直接追入');}
+  else html+=rankItem('🚫','最不建议追高',null,'','');
+  var s8=rankBy(function(d){var g=(d.final_action_grade||{}).grade||'E';var mr=(d.market_regime||{}).type||'';return((g==='C'||g==='D')?1:0)+((mr.indexOf('震荡')>=0||mr.indexOf('横盘')>=0)?1:0);},COINS,true);
+  if(s8[0].val!==null&&s8[0].val>0){var d8=coinCache[s8[0].coin],g8=(d8.final_action_grade||{}).grade||'--',mr8=(d8.market_regime||{}).type||'--';html+=rankItem('👀','最适合观察等待',s8[0].coin,g8+'级','市场状态：'+mr8.replace(' ↔️','')+'，等级'+g8+'，等待更好的入场时机');}
+  else html+=rankItem('👀','最适合观察等待',null,'','');
+  document.getElementById('rank-list').innerHTML=html;
+}
+initCoins();
+loadPrices();
+loadAlerts();
+setInterval(loadPrices,30000);
 </script>
 </body>
 </html>
